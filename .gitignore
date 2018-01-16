@@ -1,0 +1,6 @@
+/dist
+.idea/
+.vscode/
+*.log
+*.exe
+.DS_Store
