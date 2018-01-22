@@ -4,3 +4,5 @@
 *.log
 *.exe
 .DS_Store
+vendor/
+structor
