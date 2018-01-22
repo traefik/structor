@@ -1,0 +1,35 @@
+const unitedSelector = 'div.navbar.navbar-default.navbar-fixed-top div.container div.navbar-collapse.collapse ul.nav.navbar-nav.navbar-right';
+const mdSelector = 'div.md-container main.md-main div.md-main__inner.md-grid div.md-sidebar.md-sidebar--primary div.md-sidebar__scrollwrap div.md-sidebar__inner nav.md-nav.md-nav--primary ul.md-nav__list';
+
+function addMenu(selector){
+  const elt = document.querySelector(selector);
+
+  if (elt) {
+    const li = document.createElement('li');
+    li.classList.add('md-nav__item');
+
+    const select = document.createElement('select');
+    select.classList.add('md-nav__link');
+    select.setAttribute('onchange', 'location = this.options[this.selectedIndex].value;');
+
+    const versions = [
+    {{- range $version := .Versions }}
+      {path: "{{ $version.Path }}", text: "{{ $version.Text }}", selected: {{ $version.Selected }} },
+    {{- end}}
+    ];
+
+    for (let i = 0; i < versions.length; i++) {
+      let opt = document.createElement('option');
+      opt.value = window.location.protocol + "//" + window.location.host + "/" + versions[i].path;
+      opt.text = versions[i].text;
+      opt.selected = versions[i].selected;
+      select.appendChild(opt);
+    }
+
+    li.appendChild(select);
+    elt.appendChild(li);
+  }
+}
+
+addMenu(unitedSelector);
+addMenu(mdSelector);
