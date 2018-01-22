@@ -28,7 +28,7 @@ func TestBuildVersions(t *testing.T) {
 			expected: []optionVersion{
 				{
 					Path:     "",
-					Text:     "v1.4 Stable",
+					Text:     "v1.4 Latest",
 					Selected: true,
 				},
 			},
@@ -42,7 +42,7 @@ func TestBuildVersions(t *testing.T) {
 			expected: []optionVersion{
 				{
 					Path:     "",
-					Text:     "v1.4 Stable",
+					Text:     "v1.4 Latest",
 					Selected: true,
 				},
 				{
@@ -60,7 +60,7 @@ func TestBuildVersions(t *testing.T) {
 			expected: []optionVersion{
 				{
 					Path:     "",
-					Text:     "v1.4 Stable",
+					Text:     "v1.4 Latest",
 					Selected: true,
 				},
 				{
@@ -93,7 +93,7 @@ func TestBuildVersions(t *testing.T) {
 			expected: []optionVersion{
 				{
 					Path:     "",
-					Text:     "v1.4 Stable",
+					Text:     "v1.4 Latest",
 					Selected: true,
 				},
 				{
@@ -149,7 +149,7 @@ var foo = [
 `
 
 	jsFile := filepath.Join(dir, "menu.js")
-	buildMenuFile(jsFile, versionsInfo, branches, jsTemplate)
+	buildJSFile(jsFile, versionsInfo, branches, jsTemplate)
 
 	_, err := os.Stat(jsFile)
 	require.NoError(t, err)
@@ -159,7 +159,7 @@ var foo = [
 
 	expected := `
 var foo = [
-	{url: "http://localhost:8080/", text: "v1.4 Stable", selected: false },
+	{url: "http://localhost:8080/", text: "v1.4 Latest", selected: false },
 	{url: "http://localhost:8080/master", text: "Experimental", selected: false },
 	{url: "http://localhost:8080/v1.5", text: "v1.5 RC", selected: true },
 	{url: "http://localhost:8080/v1.3", text: "v1.3", selected: false },

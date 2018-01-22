@@ -9,7 +9,6 @@ import (
 	"github.com/containous/structor/meta"
 	"github.com/containous/structor/types"
 	"github.com/ogier/pflag"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -21,7 +20,9 @@ func main() {
 		DockerImageName: defaultDockerImageName,
 	}
 
-	defaultPointersConfig := &types.Configuration{}
+	defaultPointersConfig := &types.Configuration{
+		Menu: &types.MenuFiles{},
+	}
 	rootCmd := &flaeg.Command{
 		Name:                  "structor",
 		Description:           `Messor Structor: Manage multiple documentation versions with Mkdocs.`,
@@ -80,9 +81,6 @@ func validateConfig(config *types.Configuration) error {
 	err := required(config.DockerfileURL, "dockerfile-url")
 	if err != nil {
 		return err
-	}
-	if len(config.MenuTemplateFile) == 0 && len(config.MenuTemplateURL) == 0 {
-		return errors.New("menu-url or menu-file is mandatory")
 	}
 	err = required(config.Owner, "owner")
 	if err != nil {

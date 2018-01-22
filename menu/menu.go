@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,31 +20,61 @@ type optionVersion struct {
 	Selected bool
 }
 
-const menuFileName = "version-menu.js"
+const menuJsFileName = "structor-menu.js"
+const menuCSSFileName = "structor-menu.css"
 
 // Build the menu
-func Build(versionsInfo types.VersionsInformation, branches []string, menuTemplateContent []byte) error {
+func Build(versionsInfo types.VersionsInformation, branches []string, menuContent types.MenuContent) error {
 	manifestFile := filepath.Join(versionsInfo.CurrentPath, "mkdocs.yml")
-	manifestMenuFilePath := filepath.Join("theme", "js", menuFileName)
-	err := editManifest(manifestFile, manifestMenuFilePath)
+
+	var manifestJsFilePath string
+	if len(menuContent.Js) > 0 {
+		manifestJsFilePath = filepath.Join("theme", "js", menuJsFileName)
+
+		jsDir := filepath.Join(versionsInfo.CurrentPath, "docs", "theme", "js")
+		_, errStat := os.Stat(jsDir)
+		if os.IsNotExist(errStat) {
+			errDir := os.MkdirAll(jsDir, os.ModePerm)
+			if errDir != nil {
+				return errors.Wrap(errDir, "error when create JS folder")
+			}
+		}
+
+		menuFilePath := filepath.Join(jsDir, menuJsFileName)
+		errBuild := buildJSFile(menuFilePath, versionsInfo, branches, string(menuContent.Js))
+		if errBuild != nil {
+			return errBuild
+		}
+	}
+
+	var manifestCSSFilePath string
+	if len(menuContent.CSS) > 0 {
+		manifestCSSFilePath = filepath.Join("theme", "css", menuCSSFileName)
+
+		cssDir := filepath.Join(versionsInfo.CurrentPath, "docs", "theme", "css")
+		_, errStat := os.Stat(cssDir)
+		if os.IsNotExist(errStat) {
+			errDir := os.MkdirAll(cssDir, os.ModePerm)
+			if errDir != nil {
+				return errors.Wrap(errDir, "error when create CSS folder")
+			}
+		}
+
+		errWrite := ioutil.WriteFile(cssDir, menuContent.CSS, os.ModePerm)
+		if errWrite != nil {
+			return errors.Wrap(errWrite, "error when trying ro write CSS file")
+		}
+	}
+
+	err := editManifest(manifestFile, manifestJsFilePath, manifestCSSFilePath)
 	if err != nil {
 		return errors.Wrap(err, "error when edit MkDocs manifest")
 	}
 
-	jsDir := filepath.Join(versionsInfo.CurrentPath, "docs", "theme", "js")
-	_, err = os.Stat(jsDir)
-	if os.IsNotExist(err) {
-		err = os.MkdirAll(jsDir, os.ModePerm)
-		if err != nil {
-			return errors.Wrap(err, "error when create JS folder")
-		}
-	}
-
-	menuFilePath := filepath.Join(jsDir, menuFileName)
-	return buildMenuFile(menuFilePath, versionsInfo, branches, string(menuTemplateContent))
+	return nil
 }
 
-func buildMenuFile(filePath string, versionsInfo types.VersionsInformation, branches []string, menuTemplate string) error {
+func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branches []string, menuTemplate string) error {
 	temp := template.New("menu-js")
 
 	_, err := temp.Parse(menuTemplate)
@@ -105,7 +136,7 @@ func buildVersions(currentVersion string, branches []string, latestTagName strin
 			} else if sameMinor(simpleVersion, latestVersion) {
 				// latest version
 				versions = append(versions, optionVersion{
-					Text:     versionName + " Stable",
+					Text:     versionName + " Latest",
 					Selected: selected,
 				})
 			} else {

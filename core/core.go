@@ -49,7 +49,7 @@ func Execute(config *types.Configuration) error {
 		log.Printf("Temp directory: %s", workDir)
 	}
 
-	menuTemplateContent, err := getMenuTemplateContent(config.MenuTemplateFile, config.MenuTemplateURL)
+	menuContent, err := getMenuTemplateContent(config.Menu)
 	if err != nil {
 		return err
 	}
@@ -70,10 +70,10 @@ func Execute(config *types.Configuration) error {
 		RepositoryName: config.RepositoryName,
 	}
 
-	return process(workDir, repoID, baseDockerfile, menuTemplateContent, config.ExperimentalBranchName, config.Debug)
+	return process(workDir, repoID, baseDockerfile, menuContent, config.ExperimentalBranchName, config.Debug)
 }
 
-func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInformation, menuTemplateContent []byte, experimentalBranchName string, debug bool) error {
+func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInformation, menuContent types.MenuContent, experimentalBranchName string, debug bool) error {
 	latestTagName, err := gh.GetLatestReleaseTagName(repoID)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 			CurrentPath:  filepath.Join(workDir, versionName),
 		}
 
-		err = buildDocumentation(branches, branchRef, versionsInfo, baseDockerfile, menuTemplateContent, debug)
+		err = buildDocumentation(branches, branchRef, versionsInfo, baseDockerfile, menuContent, debug)
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 	return nil
 }
 
-func buildDocumentation(branches []string, branchRef string, versionsInfo types.VersionsInformation, baseDockerfile dockerfileInformation, menuTemplateContent []byte, debug bool) error {
+func buildDocumentation(branches []string, branchRef string, versionsInfo types.VersionsInformation, baseDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, debug bool) error {
 	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, debug)
 	if err != nil {
 		return err
@@ -187,16 +187,38 @@ func buildSiteDirectory() (string, error) {
 	return siteDir, nil
 }
 
-func getMenuTemplateContent(menuTemplateFile, menuTemplateURL string) ([]byte, error) {
-	if len(menuTemplateFile) > 0 {
-		content, err := ioutil.ReadFile(menuTemplateFile)
+func getMenuTemplateContent(menu *types.MenuFiles) (types.MenuContent, error) {
+	var content types.MenuContent
+
+	if menu.HasJsFile() {
+		jsContent, err := getMenuFileContent(menu.JsFile, menu.JsURL)
+		if err != nil {
+			return types.MenuContent{}, nil
+		}
+		content.Js = jsContent
+	}
+
+	if menu.HasCSSFile() {
+		cssContent, err := getMenuFileContent(menu.CSSFile, menu.CSSURL)
+		if err != nil {
+			return types.MenuContent{}, nil
+		}
+		content.CSS = cssContent
+	}
+
+	return content, nil
+}
+
+func getMenuFileContent(f string, u string) ([]byte, error) {
+	if len(f) > 0 {
+		content, err := ioutil.ReadFile(f)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get template menu file content")
 		}
 		return content, nil
 	}
 
-	content, err := downloadFile(menuTemplateURL)
+	content, err := downloadFile(u)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to download menu template")
 	}

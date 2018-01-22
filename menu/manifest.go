@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func editManifest(mkdocsFilePath string, versionJsFile string) error {
+func editManifest(mkdocsFilePath string, versionJsFile string, versionCSSFile string) error {
 	bytes, err := ioutil.ReadFile(mkdocsFilePath)
 	if err != nil {
 		return errors.Wrap(err, "error when reading MkDocs Manifest.")
@@ -21,12 +21,27 @@ func editManifest(mkdocsFilePath string, versionJsFile string) error {
 		return errors.Wrap(err, "error when unmarshal MkDocs Manifest.")
 	}
 
-	var extraJs []interface{}
-	if val, ok := manif["extra_javascript"]; ok {
-		extraJs = val.([]interface{})
+	// Append menu JS file
+	if len(versionJsFile) > 0 {
+		var extraJs []interface{}
+		if val, ok := manif["extra_javascript"]; ok {
+			extraJs = val.([]interface{})
+		}
+		extraJs = append(extraJs, versionJsFile)
+		manif["extra_javascript"] = extraJs
 	}
-	extraJs = append(extraJs, versionJsFile)
-	manif["extra_javascript"] = extraJs
+
+	// Append menu CSS file
+	if len(versionCSSFile) > 0 {
+		var extraCSS []interface{}
+		if val, ok := manif["extra_css"]; ok {
+			extraCSS = val.([]interface{})
+		}
+		extraCSS = append(extraCSS, versionCSSFile)
+		manif["extra_css"] = extraCSS
+	}
+
+	// reset site URL
 	manif["site_url"] = ""
 
 	out, err := yaml.Marshal(manif)
