@@ -74,10 +74,12 @@ func Execute(config *types.Configuration) error {
 }
 
 func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInformation, menuContent types.MenuContent, experimentalBranchName string, debug bool) error {
-	latestTagName, err := gh.GetLatestReleaseTagName(repoID)
+	latestTagName, err := getLatestReleaseTagName(repoID)
 	if err != nil {
 		return err
 	}
+
+	log.Printf("Latest tag: %s", latestTagName)
 
 	branches, err := getBranches(experimentalBranchName, debug)
 	if err != nil {
@@ -158,6 +160,14 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 	}
 
 	return nil
+}
+
+func getLatestReleaseTagName(repoID types.RepoID) (string, error) {
+	latest := os.Getenv("STRUCTOR_LATEST_TAG")
+	if len(latest) > 0 {
+		return latest, nil
+	}
+	return gh.GetLatestReleaseTagName(repoID)
 }
 
 func getBranches(experimentalBranchName string, debug bool) ([]string, error) {

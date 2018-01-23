@@ -27,6 +27,10 @@ Flags:
 -h, --help           Print Help (this message) and exit                                        
 ```
 
+## Description
+
+The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest tag name.
+
 ## Examples
 
 With menu template URL:
