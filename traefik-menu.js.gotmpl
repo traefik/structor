@@ -62,7 +62,10 @@ function addMaterialMenu(elt, versions) {
     if (versions[i].selected) {
       a.classList.add('md-nav__link--active');
     }
-    a.href = window.location.protocol + "//" + window.location.host + "/" + versions[i].path;
+    a.href = window.location.protocol + "//" + window.location.host + "/";
+    if (versions[i].path) {
+      a.href = a.href + versions[i].path + "/"
+    }
     a.title = versions[i].text;
     a.text = versions[i].text;
 
@@ -86,7 +89,10 @@ function addMenu(elt, versions){
 
   for (let i = 0; i < versions.length; i++) {
     let opt = document.createElement('option');
-    opt.value = window.location.protocol + "//" + window.location.host + "/" + versions[i].path;
+    opt.value = window.location.protocol + "//" + window.location.host + "/";
+    if (versions[i].path) {
+        opt.value = opt.value + versions[i].path + "/"
+    }
     opt.text = versions[i].text;
     opt.selected = versions[i].selected;
     select.appendChild(opt);
