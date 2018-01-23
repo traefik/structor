@@ -107,10 +107,14 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 		}
 
 		outputDir := siteDir
-		if !strings.HasPrefix(latestTagName, versionName) {
-			outputDir = filepath.Join(outputDir, versionName)
+		if strings.HasPrefix(latestTagName, versionName) {
+			err = copy.Copy(filepath.Join(versionsInfo.CurrentPath, "site"), outputDir)
+			if err != nil {
+				return err
+			}
 		}
 
+		outputDir = filepath.Join(outputDir, versionName)
 		err = copy.Copy(filepath.Join(versionsInfo.CurrentPath, "site"), outputDir)
 		if err != nil {
 			return err
