@@ -9,6 +9,7 @@ type Configuration struct {
 	ExperimentalBranchName string     `long:"exp-branch" description:"Build a branch as experimental."`
 	DockerImageName        string     `long:"image-name" description:"Docker image name."`
 	Menu                   *MenuFiles `long:"menu" description:"Menu templates files."`
+	RequirementsURL        string     `long:"rqts-url" description:"URL of the requirements.txt file."`
 }
 
 // MenuFiles menu template files references

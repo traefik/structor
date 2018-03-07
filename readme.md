@@ -24,7 +24,8 @@ Flags:
     --menu.js-url    URL of the template of the JS file use for the multi version menu.        
 -o, --owner          Repository owner. [required]                                              
 -r, --repo-name      Repository name. [required]                                               
--h, --help           Print Help (this message) and exit                                        
+    --rqts-url       URL of the requirements.txt file.                                     
+-h, --help           Print Help (this message) and exit                                     
 ```
 
 ## Description
