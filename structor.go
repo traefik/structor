@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -66,14 +67,11 @@ func runCommand(config *types.Configuration) func() error {
 
 		err := validateConfig(config)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		err = core.Execute(config)
-		if err != nil {
-			log.Fatalf("Execute error: %+v", err)
-		}
-		return nil
+		return err
 	}
 }
 
@@ -91,7 +89,7 @@ func validateConfig(config *types.Configuration) error {
 
 func required(field string, fieldName string) error {
 	if len(field) == 0 {
-		log.Fatalf("%s is mandatory.", fieldName)
+		return fmt.Errorf("%s is mandatory", fieldName)
 	}
 	return nil
 }
