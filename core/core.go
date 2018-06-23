@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	baseRemote = "origin/"
+	baseRemote              = "origin/"
+	envVarStructorLatestTag = "STRUCTOR_LATEST_TAG"
 )
 
 type dockerfileInformation struct {
@@ -176,7 +177,7 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 }
 
 func getLatestReleaseTagName(repoID types.RepoID) (string, error) {
-	latest := os.Getenv("STRUCTOR_LATEST_TAG")
+	latest := os.Getenv(envVarStructorLatestTag)
 	if len(latest) > 0 {
 		return latest, nil
 	}
@@ -196,6 +197,10 @@ func getBranches(experimentalBranchName string, debug bool) ([]string, error) {
 		return nil, err
 	}
 	branches = append(branches, gitBranches...)
+
+	if len(branches) == 0 {
+		log.Println("[WARN] no branch.")
+	}
 
 	return branches, nil
 }

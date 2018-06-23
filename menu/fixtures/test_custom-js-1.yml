@@ -1,0 +1,37 @@
+copyright: Copyright &copy; 2016-2018 Containous SAS
+dev_addr: 0.0.0.0:8000
+docs_dir: docs
+extra_css:
+- theme/styles/extra.css
+- theme/styles/atom-one-light.css
+extra_javascript:
+- theme/js/hljs/highlight.pack.js
+- theme/js/extra.js
+- structor-custom.js
+pages:
+- Getting Started: index.md
+- Basics: basics.md
+- Configuration:
+  - Commons: configuration/commons.md
+  - Logs: configuration/logs.md
+repo_name: GitHub
+repo_url: https://github.com/containous/structor
+site_author: containo.us
+site_description: Structor Documentation
+site_name: Structor
+site_url: ""
+theme:
+  custom_dir: docs/theme
+  favicon: img/traefik.icon.png
+  feature:
+    tabs: false
+  i18n:
+    next: Next
+    prev: Previous
+  include_sidebar: true
+  language: en
+  logo: img/traefik.logo.png
+  name: material
+  palette:
+    accent: cyan
+    primary: cyan

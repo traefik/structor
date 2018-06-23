@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -16,7 +15,7 @@ import (
 func CreateWorkTree(path string, version string, debug bool) error {
 	_, err := git.Worktree(worktree.Add(path, version), git.Debugger(debug))
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to add worktree on path %s for version %s", path, version))
+		return errors.Wrapf(err, "failed to add worktree on path %s for version %s", path, version)
 	}
 
 	return nil
