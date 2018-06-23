@@ -50,18 +50,18 @@ func main() {
 
 	err := flag.Run()
 	if err != nil && err != pflag.ErrHelp {
-		log.Printf("Error: %v\n", err)
+		log.Printf("Error: %v", err)
 	}
 }
 
 func runCommand(config *types.Configuration) func() error {
 	return func() error {
 		if config.Debug {
-			log.Printf("Run Structor command with config : %+v\n", config)
+			log.Printf("Run Structor command with config : %+v", config)
 		}
 
 		if len(config.DockerImageName) == 0 {
-			log.Printf("'image-name' is undefined, fallback to %s.\n", defaultDockerImageName)
+			log.Printf("'image-name' is undefined, fallback to %s.", defaultDockerImageName)
 			config.DockerImageName = defaultDockerImageName
 		}
 
