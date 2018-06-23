@@ -30,8 +30,8 @@
     "types",
     "worktree"
   ]
-  revision = "e27263e23bd292ec54bd9519f0e727395a949a91"
-  version = "v0.21.1"
+  revision = "4789812722d1cd40bdaafaa82c5b6644c47b9c81"
+  version = "v0.22.0"
 
 [[projects]]
   branch = "master"
@@ -69,6 +69,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b2c7bff81392c5768217f6e9e282de1f6e8c555b5cd0feaffb1dd366ac8d3c65"
+  inputs-digest = "3c9c0bd0a72d8c92c2f306162937853a395d8a1194af026b690663164e6c878a"
   solver-name = "gps-cdcl"
   solver-version = 1
