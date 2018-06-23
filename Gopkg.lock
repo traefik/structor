@@ -3,9 +3,12 @@
 
 [[projects]]
   name = "github.com/containous/flaeg"
-  packages = ["."]
-  revision = "60c87a513a955ca7225e1b1c772581cea8420cb4"
-  version = "v1.0.1"
+  packages = [
+    ".",
+    "parse"
+  ]
+  revision = "b4c2f060875361c070ed2bc300c5929b82f5fa2e"
+  version = "v1.1.2"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -17,7 +20,7 @@
   branch = "master"
   name = "github.com/hashicorp/go-version"
   packages = ["."]
-  revision = "4fe82ae3040f80a03d04d2cccb5606a626b8e1ee"
+  revision = "23480c0665776210b5fbbac6eaaee40e3e6a96b7"
 
 [[projects]]
   name = "github.com/ldez/go-git-cmd-wrapper"
@@ -54,14 +57,14 @@
     "assert",
     "require"
   ]
-  revision = "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c"
-  version = "v1.2.0"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
