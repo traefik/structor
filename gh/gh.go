@@ -20,33 +20,50 @@ func GetLatestReleaseTagName(repoID types.RepoID) (string, error) {
 	}
 
 	baseURL := fmt.Sprintf("https://github.com/%s/%s/releases", repoID.Owner, repoID.RepositoryName)
+
 	resp, err := client.Get(baseURL + "/latest")
 	if err != nil {
-		return "", errors.Wrap(err, "error when trying to get latest release tag name")
+		displayResponseBody(resp)
+		return "", errors.Wrap(err, "failed to get latest release tag name")
+	}
+
+	log.Println("Status:", resp.Status)
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		displayResponseBody(resp)
+		return "", errors.Errorf("failed to get latest release tag name on GitHub (%q), status: %s", baseURL+"/latest", resp.Status)
 	}
 
 	location, err := resp.Location()
 	if err != nil {
-		log.Println("Status:", resp.Status)
-
-		body, errBody := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Println(errBody)
-			return "", err
-		}
-
-		errClose := resp.Body.Close()
-		if errClose != nil {
-			log.Println(errClose)
-			return "", err
-		}
-
-		log.Println("Body:", string(body))
-
 		return "", err
 	}
 
 	tag := strings.TrimPrefix(location.String(), baseURL+"/tag/")
 
 	return tag, nil
+}
+
+func displayResponseBody(resp *http.Response) {
+	if resp.Body == nil {
+		log.Println("The response body is empty")
+		return
+	}
+
+	defer safeClose(resp.Body.Close)
+
+	body, errBody := ioutil.ReadAll(resp.Body)
+	if errBody != nil {
+		log.Println(errBody)
+		return
+	}
+
+	log.Println("Body:", string(body))
+}
+
+func safeClose(fn func() error) {
+	err := fn()
+	if err != nil {
+		log.Println(err)
+	}
 }

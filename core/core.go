@@ -180,6 +180,7 @@ func getLatestReleaseTagName(repoID types.RepoID) (string, error) {
 	if len(latest) > 0 {
 		return latest, nil
 	}
+
 	return gh.GetLatestReleaseTagName(repoID)
 }
 
