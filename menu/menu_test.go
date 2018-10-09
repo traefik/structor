@@ -130,7 +130,7 @@ func TestBuildVersions(t *testing.T) {
 
 func TestCreateFile(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "structor")
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	branches := []string{"origin/v1.4", "origin/master", "v1.4.6", "origin/v1.5", "origin/v1.3"}
 
@@ -149,9 +149,10 @@ var foo = [
 `
 
 	jsFile := filepath.Join(dir, "menu.js")
-	buildJSFile(jsFile, versionsInfo, branches, jsTemplate)
+	err := buildJSFile(jsFile, versionsInfo, branches, jsTemplate)
+	require.NoError(t, err)
 
-	_, err := os.Stat(jsFile)
+	_, err = os.Stat(jsFile)
 	require.NoError(t, err)
 
 	content, err := ioutil.ReadFile(jsFile)

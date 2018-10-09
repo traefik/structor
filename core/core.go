@@ -51,10 +51,7 @@ func Execute(config *types.Configuration) error {
 		log.Printf("Temp directory: %s", workDir)
 	}
 
-	menuContent, err := getMenuTemplateContent(config.Menu)
-	if err != nil {
-		return err
-	}
+	menuContent := getMenuTemplateContent(config.Menu)
 
 	dockerFileContent, err := downloadFile(config.DockerfileURL)
 	if err != nil {
@@ -220,13 +217,13 @@ func buildSiteDirectory() (string, error) {
 	return siteDir, nil
 }
 
-func getMenuTemplateContent(menu *types.MenuFiles) (types.MenuContent, error) {
+func getMenuTemplateContent(menu *types.MenuFiles) types.MenuContent {
 	var content types.MenuContent
 
 	if menu.HasJsFile() {
 		jsContent, err := getMenuFileContent(menu.JsFile, menu.JsURL)
 		if err != nil {
-			return types.MenuContent{}, nil
+			return types.MenuContent{}
 		}
 		content.Js = jsContent
 	}
@@ -234,12 +231,12 @@ func getMenuTemplateContent(menu *types.MenuFiles) (types.MenuContent, error) {
 	if menu.HasCSSFile() {
 		cssContent, err := getMenuFileContent(menu.CSSFile, menu.CSSURL)
 		if err != nil {
-			return types.MenuContent{}, nil
+			return types.MenuContent{}
 		}
 		content.CSS = cssContent
 	}
 
-	return content, nil
+	return content
 }
 
 func getMenuFileContent(f string, u string) ([]byte, error) {

@@ -17,7 +17,7 @@ build:
 	go build
 
 checks: check-fmt
-	gometalinter --vendor ./...
+	golangci-lint run
 
 check-fmt: SHELL := /bin/bash
 check-fmt:

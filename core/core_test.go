@@ -60,12 +60,10 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		test := test
 		t.Run(test.desc, func(t *testing.T) {
-
 			err := os.Setenv(envVarStructorLatestTag, test.envVarLatestTag)
 			require.NoError(t, err)
-			defer os.Unsetenv(envVarStructorLatestTag)
+			defer func() { _ = os.Unsetenv(envVarStructorLatestTag) }()
 
 			tagName, err := getLatestReleaseTagName(test.repo)
 			require.NoError(t, err)

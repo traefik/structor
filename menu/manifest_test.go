@@ -82,7 +82,7 @@ func setupTestManifest(src string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(dir)
+	defer func() { _ = os.Remove(dir) }()
 
 	testManifest := filepath.Join(dir, "mkdocs.yml")
 
@@ -116,7 +116,7 @@ func fileCopy(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	if err = os.Chmod(f.Name(), info.Mode()); err != nil {
 		return err
@@ -126,7 +126,7 @@ func fileCopy(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	_, err = io.Copy(f, s)
 	return err

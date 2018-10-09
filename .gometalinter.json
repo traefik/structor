@@ -1,6 +1,0 @@
-{
-  "Vendor": true,
-  "Sort": [ "path", "line", "column",  "linter", "severity"],
-
-  "Disable": ["gas", "maligned"]
-}
