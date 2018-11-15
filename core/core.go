@@ -29,6 +29,7 @@ const (
 
 type dockerfileInformation struct {
 	name      string
+	path      string
 	content   []byte
 	imageName string
 }
@@ -53,14 +54,14 @@ func Execute(config *types.Configuration) error {
 
 	menuContent := getMenuTemplateContent(config.Menu)
 
-	dockerFileContent, err := downloadFile(config.DockerfileURL)
+	fallbackDockerFileContent, err := downloadFile(config.DockerfileURL)
 	if err != nil {
 		return errors.Wrap(err, "failed to download Dockerfile")
 	}
 
-	baseDockerfile := dockerfileInformation{
+	fallbackDockerfile := dockerfileInformation{
 		name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
-		content:   dockerFileContent,
+		content:   fallbackDockerFileContent,
 		imageName: config.DockerImageName,
 	}
 
@@ -74,11 +75,11 @@ func Execute(config *types.Configuration) error {
 		return err
 	}
 
-	return process(workDir, repoID, baseDockerfile, menuContent, requirementsContent, config.ExperimentalBranchName, config.Debug)
+	return process(workDir, repoID, fallbackDockerfile, menuContent, requirementsContent, config)
 }
 
-func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInformation,
-	menuContent types.MenuContent, requirementsContent []byte, experimentalBranchName string, debug bool) error {
+func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileInformation,
+	menuContent types.MenuContent, requirementsContent []byte, config *types.Configuration) error {
 	latestTagName, err := getLatestReleaseTagName(repoID)
 	if err != nil {
 		return err
@@ -86,7 +87,7 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 
 	log.Printf("Latest tag: %s", latestTagName)
 
-	branches, err := getBranches(experimentalBranchName, debug)
+	branches, err := getBranches(config.ExperimentalBranchName, config.Debug)
 	if err != nil {
 		return err
 	}
@@ -104,11 +105,11 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 		versionsInfo := types.VersionsInformation{
 			Current:      versionName,
 			Latest:       latestTagName,
-			Experimental: experimentalBranchName,
+			Experimental: config.ExperimentalBranchName,
 			CurrentPath:  filepath.Join(workDir, versionName),
 		}
 
-		err = buildDocumentation(branches, branchRef, versionsInfo, baseDockerfile, menuContent, requirementsContent, debug)
+		err = buildDocumentation(branches, branchRef, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config.DockerfileName, config.Debug)
 		if err != nil {
 			return err
 		}
@@ -132,7 +133,7 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 }
 
 func buildDocumentation(branches []string, branchRef string, versionsInfo types.VersionsInformation,
-	baseDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte, debug bool) error {
+	fallbackDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte, dockerfileName string, debug bool) error {
 	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, debug)
 	if err != nil {
 		return err
@@ -143,21 +144,48 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	err = buildRequirements(versionsInfo, requirementsContent)
-	if err != nil {
-		return err
+	useFallback := true
+	var baseDockerfile dockerfileInformation
+	baseDockerfile.imageName = fallbackDockerfile.imageName
+
+	dockerfileSearchPaths := []string{filepath.Join(versionsInfo.CurrentPath, dockerfileName), filepath.Join(versionsInfo.CurrentPath, "docs", dockerfileName)}
+
+	for _, aDockerfileSearchPath := range dockerfileSearchPaths {
+		if _, err := os.Stat(aDockerfileSearchPath); !os.IsNotExist(err) {
+			baseDockerfile.name = dockerfileName
+			baseDockerfile.path = aDockerfileSearchPath
+			log.Printf("Found Dockerfile for building documentation in %s.", aDockerfileSearchPath)
+
+			dockerFileContent, err := ioutil.ReadFile(aDockerfileSearchPath)
+			if err != nil {
+				return errors.Wrap(err, "failed to get dockerfile file content.")
+			}
+			baseDockerfile.content = dockerFileContent
+			useFallback = false
+			break
+		}
 	}
 
-	dockerfileVersionPath := filepath.Join(versionsInfo.CurrentPath, baseDockerfile.name)
-	err = ioutil.WriteFile(dockerfileVersionPath, baseDockerfile.content, os.ModePerm)
-	if err != nil {
-		return err
+	if useFallback {
+		err = buildRequirements(versionsInfo, requirementsContent)
+		if err != nil {
+			return err
+		}
+
+		baseDockerfile = fallbackDockerfile
+		baseDockerfile.path = filepath.Join(versionsInfo.CurrentPath, baseDockerfile.name)
+
+		log.Printf("Using fallback Dockerfile, written into %s", baseDockerfile.path)
+		err = ioutil.WriteFile(baseDockerfile.path, baseDockerfile.content, os.ModePerm)
+		if err != nil {
+			return err
+		}
 	}
 
 	dockerTagName := baseDockerfile.imageName + ":" + versionsInfo.Current
 
 	// Build image
-	output, err := dockerCmd(debug, "build", "-t", dockerTagName, "-f", dockerfileVersionPath, versionsInfo.CurrentPath+"/")
+	output, err := dockerCmd(debug, "build", "-t", dockerTagName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
 		return err

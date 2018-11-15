@@ -14,11 +14,13 @@ import (
 
 const (
 	defaultDockerImageName = "doc-site"
+	defaultDockerfileName  = "docs.Dockerfile"
 )
 
 func main() {
 	config := &types.Configuration{
 		DockerImageName: defaultDockerImageName,
+		DockerfileName:  defaultDockerfileName,
 	}
 
 	defaultPointersConfig := &types.Configuration{

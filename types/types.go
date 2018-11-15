@@ -6,6 +6,7 @@ type Configuration struct {
 	RepositoryName         string     `short:"r" long:"repo-name" description:"Repository name. [required]"`
 	Debug                  bool       `long:"debug" description:"Debug mode."`
 	DockerfileURL          string     `short:"d" long:"dockerfile-url" description:"Dockerfile URL. [required]"`
+	DockerfileName         string     `long:"dockerfile-name" description:"Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation."`
 	ExperimentalBranchName string     `long:"exp-branch" description:"Build a branch as experimental."`
 	DockerImageName        string     `long:"image-name" description:"Docker image name."`
 	Menu                   *MenuFiles `long:"menu" description:"Menu templates files."`
