@@ -127,27 +127,28 @@ func buildVersions(currentVersion string, branches []string, latestTagName strin
 				return nil, err
 			}
 
-			if simpleVersion.GreaterThan(latestVersion) {
-				versions = append(versions, optionVersion{
+			var v optionVersion
+			switch {
+			case simpleVersion.GreaterThan(latestVersion):
+				v = optionVersion{
 					Path:     versionName,
 					Text:     versionName + " RC",
 					Selected: selected,
-				})
-			} else {
-				if sameMinor(simpleVersion, latestVersion) {
-					// latest version
-					versions = append(versions, optionVersion{
-						Text:     versionName + " Latest",
-						Selected: selected,
-					})
-				} else {
-					versions = append(versions, optionVersion{
-						Path:     versionName,
-						Text:     versionName,
-						Selected: selected,
-					})
+				}
+			case sameMinor(simpleVersion, latestVersion):
+				// latest version
+				v = optionVersion{
+					Text:     versionName + " Latest",
+					Selected: selected,
+				}
+			default:
+				v = optionVersion{
+					Path:     versionName,
+					Text:     versionName,
+					Selected: selected,
 				}
 			}
+			versions = append(versions, v)
 		}
 	}
 
