@@ -133,18 +133,20 @@ func buildVersions(currentVersion string, branches []string, latestTagName strin
 					Text:     versionName + " RC",
 					Selected: selected,
 				})
-			} else if sameMinor(simpleVersion, latestVersion) {
-				// latest version
-				versions = append(versions, optionVersion{
-					Text:     versionName + " Latest",
-					Selected: selected,
-				})
 			} else {
-				versions = append(versions, optionVersion{
-					Path:     versionName,
-					Text:     versionName,
-					Selected: selected,
-				})
+				if sameMinor(simpleVersion, latestVersion) {
+					// latest version
+					versions = append(versions, optionVersion{
+						Text:     versionName + " Latest",
+						Selected: selected,
+					})
+				} else {
+					versions = append(versions, optionVersion{
+						Path:     versionName,
+						Text:     versionName,
+						Selected: selected,
+					})
+				}
 			}
 		}
 	}
