@@ -144,26 +144,9 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	useFallback := true
-	var baseDockerfile dockerfileInformation
-	baseDockerfile.imageName = fallbackDockerfile.imageName
-
-	dockerfileSearchPaths := []string{filepath.Join(versionsInfo.CurrentPath, dockerfileName), filepath.Join(versionsInfo.CurrentPath, "docs", dockerfileName)}
-
-	for _, aDockerfileSearchPath := range dockerfileSearchPaths {
-		if _, err := os.Stat(aDockerfileSearchPath); !os.IsNotExist(err) {
-			baseDockerfile.name = dockerfileName
-			baseDockerfile.path = aDockerfileSearchPath
-			log.Printf("Found Dockerfile for building documentation in %s.", aDockerfileSearchPath)
-
-			dockerFileContent, err := ioutil.ReadFile(aDockerfileSearchPath)
-			if err != nil {
-				return errors.Wrap(err, "failed to get dockerfile file content.")
-			}
-			baseDockerfile.content = dockerFileContent
-			useFallback = false
-			break
-		}
+	baseDockerfile, useFallback, err := searchAndGetDockerFile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, dockerfileName)
+	if err != nil {
+		return err
 	}
 
 	if useFallback {
@@ -172,7 +155,9 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 			return err
 		}
 
-		baseDockerfile = fallbackDockerfile
+		baseDockerfile.name = fallbackDockerfile.name
+		baseDockerfile.content = fallbackDockerfile.content
+		baseDockerfile.imageName = fallbackDockerfile.imageName
 		baseDockerfile.path = filepath.Join(versionsInfo.CurrentPath, baseDockerfile.name)
 
 		log.Printf("Using fallback Dockerfile, written into %s", baseDockerfile.path)
@@ -387,6 +372,49 @@ func cleanAll(workDir string, debug bool) error {
 	}
 
 	return nil
+}
+
+func searchAndGetDockerFile(imageName string, workingDirectory string, dockerfileName string) (dockerfileInformation, bool, error) {
+	var baseDockerfile dockerfileInformation
+	useFallback := true
+
+	if imageName == "" {
+		return baseDockerfile, useFallback, errors.New("Argument imageName is empty")
+	}
+	if workingDirectory == "" {
+		return baseDockerfile, useFallback, errors.New("Argument workingDirectory is empty")
+	}
+	if _, err := os.Stat(workingDirectory); os.IsNotExist(err) {
+		return baseDockerfile, useFallback, err
+	}
+	if dockerfileName == "" {
+		return baseDockerfile, useFallback, errors.New("Argument dockerfileName is empty")
+	}
+
+	dockerfileSearchPaths := []string{
+		filepath.Join(workingDirectory, dockerfileName),
+		filepath.Join(workingDirectory, "docs", dockerfileName),
+	}
+
+	for _, aDockerfileSearchPath := range dockerfileSearchPaths {
+		if _, err := os.Stat(aDockerfileSearchPath); !os.IsNotExist(err) {
+			baseDockerfile.name = dockerfileName
+			baseDockerfile.path = aDockerfileSearchPath
+			baseDockerfile.imageName = imageName
+			log.Printf("Found Dockerfile for building documentation in %s.", aDockerfileSearchPath)
+
+			var dockerFileContent []byte
+			dockerFileContent, err = ioutil.ReadFile(aDockerfileSearchPath)
+			if err != nil {
+				return dockerfileInformation{}, useFallback, errors.Wrap(err, "failed to get dockerfile file content.")
+			}
+			baseDockerfile.content = dockerFileContent
+			useFallback = false
+			break
+		}
+	}
+
+	return baseDockerfile, useFallback, nil
 }
 
 func dockerCmd(debug bool, args ...string) (string, error) {
