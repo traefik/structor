@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -109,7 +110,7 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 			CurrentPath:  filepath.Join(workDir, versionName),
 		}
 
-		err = buildDocumentation(branches, branchRef, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config.DockerfileName, config.Debug)
+		err = buildDocumentation(branches, branchRef, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
 		if err != nil {
 			return err
 		}
@@ -133,8 +134,9 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 }
 
 func buildDocumentation(branches []string, branchRef string, versionsInfo types.VersionsInformation,
-	fallbackDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte, dockerfileName string, debug bool) error {
-	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, debug)
+	fallbackDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte,
+	config *types.Configuration) error {
+	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, config.Debug)
 	if err != nil {
 		return err
 	}
@@ -144,7 +146,7 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	baseDockerfile, useFallback, err := searchAndGetDockerFile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, dockerfileName)
+	baseDockerfile, useFallback, err := searchAndGetDockerFile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, config.DockerfileName)
 	if err != nil {
 		return err
 	}
@@ -170,14 +172,14 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 	dockerTagName := baseDockerfile.imageName + ":" + versionsInfo.Current
 
 	// Build image
-	output, err := dockerCmd(debug, "build", "-t", dockerTagName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
+	output, err := dockerCmd(config.Debug, "build", "--no-cache="+strconv.FormatBool(config.NoCache), "-t", dockerTagName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
 		return err
 	}
 
 	// Run image
-	output, err = dockerCmd(debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerTagName, "mkdocs", "build")
+	output, err = dockerCmd(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerTagName, "mkdocs", "build")
 	if err != nil {
 		log.Println(output)
 		return err

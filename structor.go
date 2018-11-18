@@ -15,12 +15,14 @@ import (
 const (
 	defaultDockerImageName = "doc-site"
 	defaultDockerfileName  = "docs.Dockerfile"
+	defaultNoCache         = false
 )
 
 func main() {
 	config := &types.Configuration{
 		DockerImageName: defaultDockerImageName,
 		DockerfileName:  defaultDockerfileName,
+		NoCache:         defaultNoCache,
 	}
 
 	defaultPointersConfig := &types.Configuration{
