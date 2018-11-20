@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -146,12 +147,12 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	baseDockerfile, useFallback, err := findDockerfile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, config.DockerfileName)
+	baseDockerfile, err := findDockerfile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, config.DockerfileName)
 	if err != nil {
 		return err
 	}
 
-	if useFallback {
+	if reflect.DeepEqual(baseDockerfile, dockerfileInformation{}) {
 		err = buildRequirements(versionsInfo, requirementsContent)
 		if err != nil {
 			return err
@@ -376,21 +377,20 @@ func cleanAll(workDir string, debug bool) error {
 	return nil
 }
 
-func findDockerfile(imageName string, workingDirectory string, dockerfileName string) (dockerfileInformation, bool, error) {
+func findDockerfile(imageName string, workingDirectory string, dockerfileName string) (dockerfileInformation, error) {
 	var baseDockerfile dockerfileInformation
-	useFallback := true
 
 	if imageName == "" {
-		return baseDockerfile, useFallback, errors.New("Argument imageName is empty")
+		return baseDockerfile, errors.New("Argument imageName is empty")
 	}
 	if workingDirectory == "" {
-		return baseDockerfile, useFallback, errors.New("Argument workingDirectory is empty")
+		return baseDockerfile, errors.New("Argument workingDirectory is empty")
 	}
 	if _, err := os.Stat(workingDirectory); os.IsNotExist(err) {
-		return baseDockerfile, useFallback, err
+		return baseDockerfile, err
 	}
 	if dockerfileName == "" {
-		return baseDockerfile, useFallback, errors.New("Argument dockerfileName is empty")
+		return baseDockerfile, errors.New("Argument dockerfileName is empty")
 	}
 
 	searchPaths := []string{
@@ -408,15 +408,14 @@ func findDockerfile(imageName string, workingDirectory string, dockerfileName st
 			var dockerFileContent []byte
 			dockerFileContent, err = ioutil.ReadFile(searchPath)
 			if err != nil {
-				return dockerfileInformation{}, useFallback, errors.Wrap(err, "failed to get dockerfile file content.")
+				return dockerfileInformation{}, errors.Wrap(err, "failed to get dockerfile file content.")
 			}
 			baseDockerfile.content = dockerFileContent
-			useFallback = false
-			break
+			return baseDockerfile, nil
 		}
 	}
 
-	return baseDockerfile, useFallback, nil
+	return dockerfileInformation{}, nil
 }
 
 func dockerCmd(debug bool, args ...string) (string, error) {

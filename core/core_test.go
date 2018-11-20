@@ -89,7 +89,6 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 		dockerfileContent    string
 		dockerfileName       string
 		expectedDockerfile   dockerfileInformation
-		expectedUseFallback  bool
 		expectedErrorMessage string
 	}{
 		{
@@ -105,7 +104,6 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 				path:      filepath.Join(workingDirPath, "normal", "docs.Dockerfile"),
 				content:   []byte("FROM alpine:3.8\n"),
 			},
-			expectedUseFallback:  false,
 			expectedErrorMessage: "",
 		},
 		{
@@ -121,87 +119,56 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 				path:      filepath.Join(workingDirPath, "normal-docs", "docs", "docs.Dockerfile"),
 				content:   []byte("FROM alpine:3.8\n"),
 			},
-			expectedUseFallback:  false,
 			expectedErrorMessage: "",
 		},
 		{
-			desc:              "normal case with no docs.Dockerfile found",
-			imageName:         "mycompany/backend:1.2.1",
-			workingDirectory:  filepath.Join(workingDirPath, "normal-no-dockerfile-found"),
-			dockerfilePath:    "",
-			dockerfileContent: "FROM alpine:3.8\n",
-			dockerfileName:    "docs.Dockerfile",
-			expectedDockerfile: dockerfileInformation{
-				name:      "",
-				imageName: "",
-				path:      "",
-				content:   nil,
-			},
-			expectedUseFallback:  true,
+			desc:                 "normal case with no docs.Dockerfile found",
+			imageName:            "mycompany/backend:1.2.1",
+			workingDirectory:     filepath.Join(workingDirPath, "normal-no-dockerfile-found"),
+			dockerfilePath:       "",
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   dockerfileInformation{},
 			expectedErrorMessage: "",
 		},
 		{
-			desc:              "error case with no imageName provided",
-			imageName:         "",
-			workingDirectory:  filepath.Join(workingDirPath, "error-no-imageName"),
-			dockerfilePath:    filepath.Join(workingDirPath, "error-no-imageName", "docs.Dockerfile"),
-			dockerfileContent: "FROM alpine:3.8\n",
-			dockerfileName:    "docs.Dockerfile",
-			expectedDockerfile: dockerfileInformation{
-				name:      "",
-				imageName: "",
-				path:      "",
-				content:   nil,
-			},
-			expectedUseFallback:  true,
+			desc:                 "error case with no imageName provided",
+			imageName:            "",
+			workingDirectory:     filepath.Join(workingDirPath, "error-no-imageName"),
+			dockerfilePath:       filepath.Join(workingDirPath, "error-no-imageName", "docs.Dockerfile"),
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   dockerfileInformation{},
 			expectedErrorMessage: "Argument imageName is empty",
 		},
 		{
-			desc:              "error case with no workingDirectory provided",
-			imageName:         "mycompany/backend:1.2.1",
-			workingDirectory:  "",
-			dockerfilePath:    filepath.Join(workingDirPath, "error-no-workingDirectory", "docs.Dockerfile"),
-			dockerfileContent: "FROM alpine:3.8\n",
-			dockerfileName:    "docs.Dockerfile",
-			expectedDockerfile: dockerfileInformation{
-				name:      "",
-				imageName: "",
-				path:      "",
-				content:   nil,
-			},
-			expectedUseFallback:  true,
+			desc:                 "error case with no workingDirectory provided",
+			imageName:            "mycompany/backend:1.2.1",
+			workingDirectory:     "",
+			dockerfilePath:       filepath.Join(workingDirPath, "error-no-workingDirectory", "docs.Dockerfile"),
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   dockerfileInformation{},
 			expectedErrorMessage: "Argument workingDirectory is empty",
 		},
 		{
-			desc:              "error case with workingDirectory not found",
-			imageName:         "mycompany/backend:1.2.1",
-			workingDirectory:  "not-existing",
-			dockerfilePath:    filepath.Join(workingDirPath, "error-workingDirectory-not-found", "docs.Dockerfile"),
-			dockerfileContent: "FROM alpine:3.8\n",
-			dockerfileName:    "docs.Dockerfile",
-			expectedDockerfile: dockerfileInformation{
-				name:      "",
-				imageName: "",
-				path:      "",
-				content:   nil,
-			},
-			expectedUseFallback:  true,
+			desc:                 "error case with workingDirectory not found",
+			imageName:            "mycompany/backend:1.2.1",
+			workingDirectory:     "not-existing",
+			dockerfilePath:       filepath.Join(workingDirPath, "error-workingDirectory-not-found", "docs.Dockerfile"),
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   dockerfileInformation{},
 			expectedErrorMessage: "stat not-existing: no such file or directory",
 		},
 		{
-			desc:              "error case with no dockerfileName provided",
-			imageName:         "mycompany/backend:1.2.1",
-			workingDirectory:  filepath.Join(workingDirPath, "error-no-dockerfileName"),
-			dockerfilePath:    filepath.Join(workingDirPath, "error-no-dockerfileName", "docs.Dockerfile"),
-			dockerfileContent: "FROM alpine:3.8\n",
-			dockerfileName:    "",
-			expectedDockerfile: dockerfileInformation{
-				name:      "",
-				imageName: "",
-				path:      "",
-				content:   nil,
-			},
-			expectedUseFallback:  true,
+			desc:                 "error case with no dockerfileName provided",
+			imageName:            "mycompany/backend:1.2.1",
+			workingDirectory:     filepath.Join(workingDirPath, "error-no-dockerfileName"),
+			dockerfilePath:       filepath.Join(workingDirPath, "error-no-dockerfileName", "docs.Dockerfile"),
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "",
+			expectedDockerfile:   dockerfileInformation{},
 			expectedErrorMessage: "Argument dockerfileName is empty",
 		},
 	}
@@ -223,9 +190,8 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 					require.NoError(t, err)
 				}
 			}
-			resultingDockerfile, resultingUseFallback, resultingError := searchAndGetDockerFile(test.imageName, test.workingDirectory, test.dockerfileName)
+			resultingDockerfile, resultingError := findDockerfile(test.imageName, test.workingDirectory, test.dockerfileName)
 
-			assert.Equal(t, test.expectedUseFallback, resultingUseFallback)
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)
 			} else {
