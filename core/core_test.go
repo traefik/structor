@@ -86,7 +86,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 		imageName            string
 		workingDirectory     string
 		dockerfilePath       string
-		dockerfileContent    []byte
+		dockerfileContent    string
 		dockerfileName       string
 		expectedDockerfile   dockerfileInformation
 		expectedUseFallback  bool
@@ -97,7 +97,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  filepath.Join(workingDirPath, "normal"),
 			dockerfilePath:    filepath.Join(workingDirPath, "normal", "docs.Dockerfile"),
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
 			expectedDockerfile: dockerfileInformation{
 				name:      "docs.Dockerfile",
@@ -113,7 +113,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  filepath.Join(workingDirPath, "normal-docs"),
 			dockerfilePath:    filepath.Join(workingDirPath, "normal-docs", "docs", "docs.Dockerfile"),
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
 			expectedDockerfile: dockerfileInformation{
 				name:      "docs.Dockerfile",
@@ -129,7 +129,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  filepath.Join(workingDirPath, "normal-no-dockerfile-found"),
 			dockerfilePath:    "",
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
 			expectedDockerfile: dockerfileInformation{
 				name:      "",
@@ -145,7 +145,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "",
 			workingDirectory:  filepath.Join(workingDirPath, "error-no-imageName"),
 			dockerfilePath:    filepath.Join(workingDirPath, "error-no-imageName", "docs.Dockerfile"),
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
 			expectedDockerfile: dockerfileInformation{
 				name:      "",
@@ -161,7 +161,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  "",
 			dockerfilePath:    filepath.Join(workingDirPath, "error-no-workingDirectory", "docs.Dockerfile"),
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
 			expectedDockerfile: dockerfileInformation{
 				name:      "",
@@ -177,7 +177,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  "not-existing",
 			dockerfilePath:    filepath.Join(workingDirPath, "error-workingDirectory-not-found", "docs.Dockerfile"),
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
 			expectedDockerfile: dockerfileInformation{
 				name:      "",
@@ -193,7 +193,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  filepath.Join(workingDirPath, "error-no-dockerfileName"),
 			dockerfilePath:    filepath.Join(workingDirPath, "error-no-dockerfileName", "docs.Dockerfile"),
-			dockerfileContent: []byte("FROM alpine:3.8\n"),
+			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "",
 			expectedDockerfile: dockerfileInformation{
 				name:      "",
@@ -208,33 +208,30 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 
 	for _, test := range testCases {
 		test := test
-		t.Run("group", func(t *testing.T) {
-			t.Run(test.desc, func(t *testing.T) {
-				t.Parallel()
+		t.Run(test.desc, func(t *testing.T) {
 
-				if test.workingDirectory != "" && filepath.IsAbs(test.workingDirectory) {
-					err = os.MkdirAll(test.workingDirectory, os.ModePerm)
+			if test.workingDirectory != "" && filepath.IsAbs(test.workingDirectory) {
+				err = os.MkdirAll(test.workingDirectory, os.ModePerm)
+				require.NoError(t, err)
+			}
+
+			if test.dockerfilePath != "" {
+				err = os.MkdirAll(filepath.Dir(test.dockerfilePath), os.ModePerm)
+				require.NoError(t, err)
+				if test.dockerfileContent != "" {
+					err = ioutil.WriteFile(test.dockerfilePath, []byte(test.dockerfileContent), os.ModePerm)
 					require.NoError(t, err)
 				}
+			}
+			resultingDockerfile, resultingUseFallback, resultingError := searchAndGetDockerFile(test.imageName, test.workingDirectory, test.dockerfileName)
 
-				if test.dockerfilePath != "" {
-					err = os.MkdirAll(filepath.Dir(test.dockerfilePath), os.ModePerm)
-					require.NoError(t, err)
-					if test.dockerfileContent != nil {
-						err = ioutil.WriteFile(test.dockerfilePath, test.dockerfileContent, os.ModePerm)
-						require.NoError(t, err)
-					}
-				}
-				resultingDockerfile, resultingUseFallback, resultingError := searchAndGetDockerFile(test.imageName, test.workingDirectory, test.dockerfileName)
-
-				assert.Equal(t, test.expectedUseFallback, resultingUseFallback)
-				if test.expectedErrorMessage != "" {
-					assert.EqualError(t, resultingError, test.expectedErrorMessage)
-				} else {
-					assert.Equal(t, nil, resultingError)
-				}
-				assert.Equal(t, test.expectedDockerfile, resultingDockerfile)
-			})
+			assert.Equal(t, test.expectedUseFallback, resultingUseFallback)
+			if test.expectedErrorMessage != "" {
+				assert.EqualError(t, resultingError, test.expectedErrorMessage)
+			} else {
+				assert.NoError(t, resultingError)
+			}
+			assert.Equal(t, test.expectedDockerfile, resultingDockerfile)
 		})
 	}
 }
