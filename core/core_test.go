@@ -139,7 +139,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			dockerfileContent:    "FROM alpine:3.8\n",
 			dockerfileName:       "docs.Dockerfile",
 			expectedDockerfile:   dockerfileInformation{},
-			expectedErrorMessage: "Argument imageName is empty",
+			expectedErrorMessage: "imageName is undefined",
 		},
 		{
 			desc:                 "error case with no workingDirectory provided",
@@ -149,7 +149,7 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			dockerfileContent:    "FROM alpine:3.8\n",
 			dockerfileName:       "docs.Dockerfile",
 			expectedDockerfile:   dockerfileInformation{},
-			expectedErrorMessage: "Argument workingDirectory is empty",
+			expectedErrorMessage: "workingDirectory is undefined",
 		},
 		{
 			desc:                 "error case with workingDirectory not found",
@@ -160,16 +160,6 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 			dockerfileName:       "docs.Dockerfile",
 			expectedDockerfile:   dockerfileInformation{},
 			expectedErrorMessage: "stat not-existing: no such file or directory",
-		},
-		{
-			desc:                 "error case with no dockerfileName provided",
-			imageName:            "mycompany/backend:1.2.1",
-			workingDirectory:     filepath.Join(workingDirPath, "error-no-dockerfileName"),
-			dockerfilePath:       filepath.Join(workingDirPath, "error-no-dockerfileName", "docs.Dockerfile"),
-			dockerfileContent:    "FROM alpine:3.8\n",
-			dockerfileName:       "",
-			expectedDockerfile:   dockerfileInformation{},
-			expectedErrorMessage: "Argument dockerfileName is empty",
 		},
 	}
 

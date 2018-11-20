@@ -381,16 +381,16 @@ func findDockerfile(imageName string, workingDirectory string, dockerfileName st
 	var baseDockerfile dockerfileInformation
 
 	if imageName == "" {
-		return baseDockerfile, errors.New("Argument imageName is empty")
+		return baseDockerfile, errors.New("imageName is undefined")
 	}
 	if workingDirectory == "" {
-		return baseDockerfile, errors.New("Argument workingDirectory is empty")
+		return baseDockerfile, errors.New("workingDirectory is undefined")
 	}
 	if _, err := os.Stat(workingDirectory); os.IsNotExist(err) {
 		return baseDockerfile, err
 	}
 	if dockerfileName == "" {
-		return baseDockerfile, errors.New("Argument dockerfileName is empty")
+		return baseDockerfile, errors.New("dockerfileName is undefined")
 	}
 
 	searchPaths := []string{
