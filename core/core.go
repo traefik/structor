@@ -146,7 +146,7 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	baseDockerfile, useFallback, err := searchAndGetDockerFile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, config.DockerfileName)
+	baseDockerfile, useFallback, err := findDockerfile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, config.DockerfileName)
 	if err != nil {
 		return err
 	}
@@ -376,7 +376,7 @@ func cleanAll(workDir string, debug bool) error {
 	return nil
 }
 
-func searchAndGetDockerFile(imageName string, workingDirectory string, dockerfileName string) (dockerfileInformation, bool, error) {
+func findDockerfile(imageName string, workingDirectory string, dockerfileName string) (dockerfileInformation, bool, error) {
 	var baseDockerfile dockerfileInformation
 	useFallback := true
 
@@ -393,20 +393,20 @@ func searchAndGetDockerFile(imageName string, workingDirectory string, dockerfil
 		return baseDockerfile, useFallback, errors.New("Argument dockerfileName is empty")
 	}
 
-	dockerfileSearchPaths := []string{
+	searchPaths := []string{
 		filepath.Join(workingDirectory, dockerfileName),
 		filepath.Join(workingDirectory, "docs", dockerfileName),
 	}
 
-	for _, aDockerfileSearchPath := range dockerfileSearchPaths {
-		if _, err := os.Stat(aDockerfileSearchPath); !os.IsNotExist(err) {
+	for _, searchPath := range searchPaths {
+		if _, err := os.Stat(searchPath); !os.IsNotExist(err) {
 			baseDockerfile.name = dockerfileName
-			baseDockerfile.path = aDockerfileSearchPath
+			baseDockerfile.path = searchPath
 			baseDockerfile.imageName = imageName
-			log.Printf("Found Dockerfile for building documentation in %s.", aDockerfileSearchPath)
+			log.Printf("Found Dockerfile for building documentation in %s.", searchPath)
 
 			var dockerFileContent []byte
-			dockerFileContent, err = ioutil.ReadFile(aDockerfileSearchPath)
+			dockerFileContent, err = ioutil.ReadFile(searchPath)
 			if err != nil {
 				return dockerfileInformation{}, useFallback, errors.Wrap(err, "failed to get dockerfile file content.")
 			}
