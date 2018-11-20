@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -110,6 +109,7 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 			Experimental: config.ExperimentalBranchName,
 			CurrentPath:  filepath.Join(workDir, versionName),
 		}
+		fallbackDockerfile.path = filepath.Join(versionsInfo.CurrentPath, fallbackDockerfile.name)
 
 		err = buildDocumentation(branches, branchRef, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
 		if err != nil {
@@ -147,27 +147,19 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	baseDockerfile, err := findDockerfile(fallbackDockerfile.imageName, versionsInfo.CurrentPath, config.DockerfileName)
+	err = buildRequirements(versionsInfo, requirementsContent)
 	if err != nil {
 		return err
 	}
 
-	if reflect.DeepEqual(baseDockerfile, dockerfileInformation{}) {
-		err = buildRequirements(versionsInfo, requirementsContent)
-		if err != nil {
-			return err
-		}
+	baseDockerfile, err := getDockerfile(fallbackDockerfile, versionsInfo.CurrentPath, config.DockerfileName)
+	if err != nil {
+		return err
+	}
 
-		baseDockerfile.name = fallbackDockerfile.name
-		baseDockerfile.content = fallbackDockerfile.content
-		baseDockerfile.imageName = fallbackDockerfile.imageName
-		baseDockerfile.path = filepath.Join(versionsInfo.CurrentPath, baseDockerfile.name)
-
-		log.Printf("Using fallback Dockerfile, written into %s", baseDockerfile.path)
-		err = ioutil.WriteFile(baseDockerfile.path, baseDockerfile.content, os.ModePerm)
-		if err != nil {
-			return err
-		}
+	err = ioutil.WriteFile(baseDockerfile.path, baseDockerfile.content, os.ModePerm)
+	if err != nil {
+		return err
 	}
 
 	dockerTagName := baseDockerfile.imageName + ":" + versionsInfo.Current
@@ -377,20 +369,12 @@ func cleanAll(workDir string, debug bool) error {
 	return nil
 }
 
-func findDockerfile(imageName string, workingDirectory string, dockerfileName string) (dockerfileInformation, error) {
-	var baseDockerfile dockerfileInformation
-
-	if imageName == "" {
-		return baseDockerfile, errors.New("imageName is undefined")
-	}
+func getDockerfile(fallbackDockerfile dockerfileInformation, workingDirectory string, dockerfileName string) (*dockerfileInformation, error) {
 	if workingDirectory == "" {
-		return baseDockerfile, errors.New("workingDirectory is undefined")
+		return nil, errors.New("workingDirectory is undefined")
 	}
 	if _, err := os.Stat(workingDirectory); os.IsNotExist(err) {
-		return baseDockerfile, err
-	}
-	if dockerfileName == "" {
-		return baseDockerfile, errors.New("dockerfileName is undefined")
+		return nil, err
 	}
 
 	searchPaths := []string{
@@ -400,22 +384,25 @@ func findDockerfile(imageName string, workingDirectory string, dockerfileName st
 
 	for _, searchPath := range searchPaths {
 		if _, err := os.Stat(searchPath); !os.IsNotExist(err) {
-			baseDockerfile.name = dockerfileName
-			baseDockerfile.path = searchPath
-			baseDockerfile.imageName = imageName
 			log.Printf("Found Dockerfile for building documentation in %s.", searchPath)
 
 			var dockerFileContent []byte
 			dockerFileContent, err = ioutil.ReadFile(searchPath)
 			if err != nil {
-				return dockerfileInformation{}, errors.Wrap(err, "failed to get dockerfile file content.")
+				return nil, errors.Wrap(err, "failed to get dockerfile file content.")
 			}
-			baseDockerfile.content = dockerFileContent
-			return baseDockerfile, nil
+			baseDockerfile := dockerfileInformation{
+				name:      dockerfileName,
+				path:      searchPath,
+				imageName: fallbackDockerfile.imageName,
+				content:   dockerFileContent,
+			}
+			return &baseDockerfile, nil
 		}
 	}
 
-	return dockerfileInformation{}, nil
+	log.Printf("Using fallback Dockerfile, written into %s", fallbackDockerfile.path)
+	return &fallbackDockerfile, nil
 }
 
 func dockerCmd(debug bool, args ...string) (string, error) {

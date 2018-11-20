@@ -77,28 +77,33 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 }
 
 func Test_searchAndGetDockerFile(t *testing.T) {
-	workingDirPath, err := ioutil.TempDir("", "structor-test-searchAndGetDockerFile")
+	workingDirPath, err := ioutil.TempDir("", "structor-test")
 	defer func() { _ = os.Remove(workingDirPath) }()
 	require.NoError(t, err)
 
+	fallbackDockerfile := dockerfileInformation{
+		name:      "fallback.Dockerfile",
+		imageName: "mycompany/backend:1.2.1",
+		path:      "/tmp/fallback",
+		content:   []byte("FROM alpine:3.8"),
+	}
+
 	testCases := []struct {
 		desc                 string
-		imageName            string
 		workingDirectory     string
 		dockerfilePath       string
 		dockerfileContent    string
 		dockerfileName       string
-		expectedDockerfile   dockerfileInformation
+		expectedDockerfile   *dockerfileInformation
 		expectedErrorMessage string
 	}{
 		{
 			desc:              "normal case with a docs.Dockerfile at the root",
-			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  filepath.Join(workingDirPath, "normal"),
 			dockerfilePath:    filepath.Join(workingDirPath, "normal", "docs.Dockerfile"),
 			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
-			expectedDockerfile: dockerfileInformation{
+			expectedDockerfile: &dockerfileInformation{
 				name:      "docs.Dockerfile",
 				imageName: "mycompany/backend:1.2.1",
 				path:      filepath.Join(workingDirPath, "normal", "docs.Dockerfile"),
@@ -108,12 +113,11 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 		},
 		{
 			desc:              "normal case with a docs.Dockerfile in the docs directory",
-			imageName:         "mycompany/backend:1.2.1",
 			workingDirectory:  filepath.Join(workingDirPath, "normal-docs"),
 			dockerfilePath:    filepath.Join(workingDirPath, "normal-docs", "docs", "docs.Dockerfile"),
 			dockerfileContent: "FROM alpine:3.8\n",
 			dockerfileName:    "docs.Dockerfile",
-			expectedDockerfile: dockerfileInformation{
+			expectedDockerfile: &dockerfileInformation{
 				name:      "docs.Dockerfile",
 				imageName: "mycompany/backend:1.2.1",
 				path:      filepath.Join(workingDirPath, "normal-docs", "docs", "docs.Dockerfile"),
@@ -123,42 +127,29 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 		},
 		{
 			desc:                 "normal case with no docs.Dockerfile found",
-			imageName:            "mycompany/backend:1.2.1",
 			workingDirectory:     filepath.Join(workingDirPath, "normal-no-dockerfile-found"),
 			dockerfilePath:       "",
 			dockerfileContent:    "FROM alpine:3.8\n",
 			dockerfileName:       "docs.Dockerfile",
-			expectedDockerfile:   dockerfileInformation{},
+			expectedDockerfile:   &fallbackDockerfile,
 			expectedErrorMessage: "",
 		},
 		{
-			desc:                 "error case with no imageName provided",
-			imageName:            "",
-			workingDirectory:     filepath.Join(workingDirPath, "error-no-imageName"),
-			dockerfilePath:       filepath.Join(workingDirPath, "error-no-imageName", "docs.Dockerfile"),
-			dockerfileContent:    "FROM alpine:3.8\n",
-			dockerfileName:       "docs.Dockerfile",
-			expectedDockerfile:   dockerfileInformation{},
-			expectedErrorMessage: "imageName is undefined",
-		},
-		{
 			desc:                 "error case with no workingDirectory provided",
-			imageName:            "mycompany/backend:1.2.1",
 			workingDirectory:     "",
 			dockerfilePath:       filepath.Join(workingDirPath, "error-no-workingDirectory", "docs.Dockerfile"),
 			dockerfileContent:    "FROM alpine:3.8\n",
 			dockerfileName:       "docs.Dockerfile",
-			expectedDockerfile:   dockerfileInformation{},
+			expectedDockerfile:   nil,
 			expectedErrorMessage: "workingDirectory is undefined",
 		},
 		{
 			desc:                 "error case with workingDirectory not found",
-			imageName:            "mycompany/backend:1.2.1",
 			workingDirectory:     "not-existing",
 			dockerfilePath:       filepath.Join(workingDirPath, "error-workingDirectory-not-found", "docs.Dockerfile"),
 			dockerfileContent:    "FROM alpine:3.8\n",
 			dockerfileName:       "docs.Dockerfile",
-			expectedDockerfile:   dockerfileInformation{},
+			expectedDockerfile:   nil,
 			expectedErrorMessage: "stat not-existing: no such file or directory",
 		},
 	}
@@ -180,14 +171,19 @@ func Test_searchAndGetDockerFile(t *testing.T) {
 					require.NoError(t, err)
 				}
 			}
-			resultingDockerfile, resultingError := findDockerfile(test.imageName, test.workingDirectory, test.dockerfileName)
+			resultingDockerfile, resultingError := getDockerfile(fallbackDockerfile, test.workingDirectory, test.dockerfileName)
 
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)
 			} else {
 				assert.NoError(t, resultingError)
 			}
-			assert.Equal(t, test.expectedDockerfile, resultingDockerfile)
+			if test.expectedDockerfile != nil {
+				require.NotNil(t, resultingDockerfile)
+				assert.Equal(t, *test.expectedDockerfile, *resultingDockerfile)
+			} else {
+				assert.Nil(t, resultingDockerfile)
+			}
 		})
 	}
 }
