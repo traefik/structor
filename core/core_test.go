@@ -175,13 +175,8 @@ func Test_findDockerFile(t *testing.T) {
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)
 			} else {
-				assert.NoError(t, resultingError)
-			}
-			if test.expectedDockerfile != nil {
-				require.NotNil(t, resultingDockerfile)
+				require.NoError(t, resultingError)
 				assert.Equal(t, *test.expectedDockerfile, *resultingDockerfile)
-			} else {
-				assert.Nil(t, resultingDockerfile)
 			}
 		})
 	}
