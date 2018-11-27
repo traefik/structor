@@ -157,6 +157,7 @@ func Test_findDockerFile(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
+
 			if test.workingDirectory != "" && filepath.IsAbs(test.workingDirectory) {
 				err = os.MkdirAll(test.workingDirectory, os.ModePerm)
 				require.NoError(t, err)
@@ -170,13 +171,14 @@ func Test_findDockerFile(t *testing.T) {
 					require.NoError(t, err)
 				}
 			}
+
 			resultingDockerfile, resultingError := getDockerfile(fallbackDockerfile, test.workingDirectory, test.dockerfileName)
 
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)
 			} else {
 				require.NoError(t, resultingError)
-				assert.Equal(t, *test.expectedDockerfile, *resultingDockerfile)
+				assert.Equal(t, test.expectedDockerfile, resultingDockerfile)
 			}
 		})
 	}
