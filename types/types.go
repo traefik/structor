@@ -5,11 +5,13 @@ type Configuration struct {
 	Owner                  string     `short:"o" description:"Repository owner. [required]"`
 	RepositoryName         string     `short:"r" long:"repo-name" description:"Repository name. [required]"`
 	Debug                  bool       `long:"debug" description:"Debug mode."`
-	DockerfileURL          string     `short:"d" long:"dockerfile-url" description:"Dockerfile URL. [required]"`
+	DockerfileURL          string     `short:"d" long:"dockerfile-url" description:"Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]"`
+	DockerfileName         string     `long:"dockerfile-name" description:"Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation."`
 	ExperimentalBranchName string     `long:"exp-branch" description:"Build a branch as experimental."`
 	DockerImageName        string     `long:"image-name" description:"Docker image name."`
 	Menu                   *MenuFiles `long:"menu" description:"Menu templates files."`
-	RequirementsURL        string     `long:"rqts-url" description:"URL of the requirements.txt file."`
+	RequirementsURL        string     `long:"rqts-url" description:"Use this requirements.txt when --dockerfile-name is not found. Can be a file path."`
+	NoCache                bool       `long:"no-cache" description:"Set to 'true' to disable the Docker build cache."`
 }
 
 // MenuFiles menu template files references

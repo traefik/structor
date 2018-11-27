@@ -1,7 +1,9 @@
 package core
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/containous/structor/types"
@@ -70,6 +72,114 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Regexp(t, test.expected, tagName)
+		})
+	}
+}
+
+func Test_findDockerFile(t *testing.T) {
+	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
+	defer func() { _ = os.Remove(workingDirBasePath) }()
+	require.NoError(t, err)
+
+	fallbackDockerfile := dockerfileInformation{
+		name:      "fallback.Dockerfile",
+		imageName: "mycompany/backend:1.2.1",
+		path:      filepath.Join(workingDirBasePath, "fallback"),
+		content:   []byte("FROM alpine:3.8"),
+	}
+
+	testCases := []struct {
+		desc                 string
+		workingDirectory     string
+		dockerfilePath       string
+		dockerfileContent    string
+		dockerfileName       string
+		expectedDockerfile   *dockerfileInformation
+		expectedErrorMessage string
+	}{
+		{
+			desc:              "normal case with a docs.Dockerfile at the root",
+			workingDirectory:  filepath.Join(workingDirBasePath, "normal"),
+			dockerfilePath:    filepath.Join(workingDirBasePath, "normal", "docs.Dockerfile"),
+			dockerfileContent: "FROM alpine:3.8\n",
+			dockerfileName:    "docs.Dockerfile",
+			expectedDockerfile: &dockerfileInformation{
+				name:      "docs.Dockerfile",
+				imageName: "mycompany/backend:1.2.1",
+				path:      filepath.Join(workingDirBasePath, "normal", "docs.Dockerfile"),
+				content:   []byte("FROM alpine:3.8\n"),
+			},
+			expectedErrorMessage: "",
+		},
+		{
+			desc:              "normal case with a docs.Dockerfile in the docs directory",
+			workingDirectory:  filepath.Join(workingDirBasePath, "normal-docs"),
+			dockerfilePath:    filepath.Join(workingDirBasePath, "normal-docs", "docs", "docs.Dockerfile"),
+			dockerfileContent: "FROM alpine:3.8\n",
+			dockerfileName:    "docs.Dockerfile",
+			expectedDockerfile: &dockerfileInformation{
+				name:      "docs.Dockerfile",
+				imageName: "mycompany/backend:1.2.1",
+				path:      filepath.Join(workingDirBasePath, "normal-docs", "docs", "docs.Dockerfile"),
+				content:   []byte("FROM alpine:3.8\n"),
+			},
+			expectedErrorMessage: "",
+		},
+		{
+			desc:                 "normal case with no docs.Dockerfile found",
+			workingDirectory:     filepath.Join(workingDirBasePath, "normal-no-dockerfile-found"),
+			dockerfilePath:       "",
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   &fallbackDockerfile,
+			expectedErrorMessage: "",
+		},
+		{
+			desc:                 "error case with workingDirectory undefined",
+			workingDirectory:     "",
+			dockerfilePath:       filepath.Join(workingDirBasePath, "error-workingDirectory-undefined", "docs.Dockerfile"),
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   nil,
+			expectedErrorMessage: "workingDirectory is undefined",
+		},
+		{
+			desc:                 "error case with workingDirectory not found",
+			workingDirectory:     "not-existing",
+			dockerfilePath:       filepath.Join(workingDirBasePath, "error-workingDirectory-not-found", "docs.Dockerfile"),
+			dockerfileContent:    "FROM alpine:3.8\n",
+			dockerfileName:       "docs.Dockerfile",
+			expectedDockerfile:   nil,
+			expectedErrorMessage: "stat not-existing: no such file or directory",
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+
+			if test.workingDirectory != "" && filepath.IsAbs(test.workingDirectory) {
+				err = os.MkdirAll(test.workingDirectory, os.ModePerm)
+				require.NoError(t, err)
+			}
+
+			if test.dockerfilePath != "" {
+				err = os.MkdirAll(filepath.Dir(test.dockerfilePath), os.ModePerm)
+				require.NoError(t, err)
+				if test.dockerfileContent != "" {
+					err = ioutil.WriteFile(test.dockerfilePath, []byte(test.dockerfileContent), os.ModePerm)
+					require.NoError(t, err)
+				}
+			}
+
+			resultingDockerfile, resultingError := getDockerfile(fallbackDockerfile, test.workingDirectory, test.dockerfileName)
+
+			if test.expectedErrorMessage != "" {
+				assert.EqualError(t, resultingError, test.expectedErrorMessage)
+			} else {
+				require.NoError(t, resultingError)
+				assert.Equal(t, test.expectedDockerfile, resultingDockerfile)
+			}
 		})
 	}
 }

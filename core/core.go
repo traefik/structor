@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,6 +30,7 @@ const (
 
 type dockerfileInformation struct {
 	name      string
+	path      string
 	content   []byte
 	imageName string
 }
@@ -53,14 +55,14 @@ func Execute(config *types.Configuration) error {
 
 	menuContent := getMenuTemplateContent(config.Menu)
 
-	dockerFileContent, err := downloadFile(config.DockerfileURL)
+	fallbackDockerFileContent, err := downloadFile(config.DockerfileURL)
 	if err != nil {
 		return errors.Wrap(err, "failed to download Dockerfile")
 	}
 
-	baseDockerfile := dockerfileInformation{
+	fallbackDockerfile := dockerfileInformation{
 		name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
-		content:   dockerFileContent,
+		content:   fallbackDockerFileContent,
 		imageName: config.DockerImageName,
 	}
 
@@ -74,11 +76,11 @@ func Execute(config *types.Configuration) error {
 		return err
 	}
 
-	return process(workDir, repoID, baseDockerfile, menuContent, requirementsContent, config.ExperimentalBranchName, config.Debug)
+	return process(workDir, repoID, fallbackDockerfile, menuContent, requirementsContent, config)
 }
 
-func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInformation,
-	menuContent types.MenuContent, requirementsContent []byte, experimentalBranchName string, debug bool) error {
+func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileInformation,
+	menuContent types.MenuContent, requirementsContent []byte, config *types.Configuration) error {
 	latestTagName, err := getLatestReleaseTagName(repoID)
 	if err != nil {
 		return err
@@ -86,7 +88,7 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 
 	log.Printf("Latest tag: %s", latestTagName)
 
-	branches, err := getBranches(experimentalBranchName, debug)
+	branches, err := getBranches(config.ExperimentalBranchName, config.Debug)
 	if err != nil {
 		return err
 	}
@@ -104,11 +106,12 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 		versionsInfo := types.VersionsInformation{
 			Current:      versionName,
 			Latest:       latestTagName,
-			Experimental: experimentalBranchName,
+			Experimental: config.ExperimentalBranchName,
 			CurrentPath:  filepath.Join(workDir, versionName),
 		}
+		fallbackDockerfile.path = filepath.Join(versionsInfo.CurrentPath, fallbackDockerfile.name)
 
-		err = buildDocumentation(branches, branchRef, versionsInfo, baseDockerfile, menuContent, requirementsContent, debug)
+		err = buildDocumentation(branches, branchRef, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
 		if err != nil {
 			return err
 		}
@@ -132,8 +135,9 @@ func process(workDir string, repoID types.RepoID, baseDockerfile dockerfileInfor
 }
 
 func buildDocumentation(branches []string, branchRef string, versionsInfo types.VersionsInformation,
-	baseDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte, debug bool) error {
-	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, debug)
+	fallbackDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte,
+	config *types.Configuration) error {
+	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, config.Debug)
 	if err != nil {
 		return err
 	}
@@ -148,8 +152,12 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	dockerfileVersionPath := filepath.Join(versionsInfo.CurrentPath, baseDockerfile.name)
-	err = ioutil.WriteFile(dockerfileVersionPath, baseDockerfile.content, os.ModePerm)
+	baseDockerfile, err := getDockerfile(fallbackDockerfile, versionsInfo.CurrentPath, config.DockerfileName)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(baseDockerfile.path, baseDockerfile.content, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -157,14 +165,14 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 	dockerTagName := baseDockerfile.imageName + ":" + versionsInfo.Current
 
 	// Build image
-	output, err := dockerCmd(debug, "build", "-t", dockerTagName, "-f", dockerfileVersionPath, versionsInfo.CurrentPath+"/")
+	output, err := dockerCmd(config.Debug, "build", "--no-cache="+strconv.FormatBool(config.NoCache), "-t", dockerTagName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
 		return err
 	}
 
 	// Run image
-	output, err = dockerCmd(debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerTagName, "mkdocs", "build")
+	output, err = dockerCmd(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerTagName, "mkdocs", "build")
 	if err != nil {
 		log.Println(output)
 		return err
@@ -359,6 +367,42 @@ func cleanAll(workDir string, debug bool) error {
 	}
 
 	return nil
+}
+
+func getDockerfile(fallbackDockerfile dockerfileInformation, workingDirectory string, dockerfileName string) (*dockerfileInformation, error) {
+	if workingDirectory == "" {
+		return nil, errors.New("workingDirectory is undefined")
+	}
+	if _, err := os.Stat(workingDirectory); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	searchPaths := []string{
+		filepath.Join(workingDirectory, dockerfileName),
+		filepath.Join(workingDirectory, "docs", dockerfileName),
+	}
+
+	for _, searchPath := range searchPaths {
+		if _, err := os.Stat(searchPath); !os.IsNotExist(err) {
+			log.Printf("Found Dockerfile for building documentation in %s.", searchPath)
+
+			var dockerFileContent []byte
+			dockerFileContent, err = ioutil.ReadFile(searchPath)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get dockerfile file content.")
+			}
+			baseDockerfile := dockerfileInformation{
+				name:      dockerfileName,
+				path:      searchPath,
+				imageName: fallbackDockerfile.imageName,
+				content:   dockerFileContent,
+			}
+			return &baseDockerfile, nil
+		}
+	}
+
+	log.Printf("Using fallback Dockerfile, written into %s", fallbackDockerfile.path)
+	return &fallbackDockerfile, nil
 }
 
 func dockerCmd(debug bool, args ...string) (string, error) {
