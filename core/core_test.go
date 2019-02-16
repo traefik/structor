@@ -183,3 +183,66 @@ func Test_findDockerFile(t *testing.T) {
 		})
 	}
 }
+
+func Test_getDockerImageFullName(t *testing.T) {
+
+	testCases := []struct {
+		desc             string
+		imageName        string
+		tagName          string
+		expectedFullName string
+	}{
+		{
+			desc:             "image and tag with no special chars",
+			imageName:        "debian",
+			tagName:          "slim",
+			expectedFullName: "debian:slim",
+		},
+		{
+			desc:             "image and tag with dashes",
+			imageName:        "open-jdk",
+			tagName:          "8-alpine",
+			expectedFullName: "open-jdk:8-alpine",
+		},
+		{
+			desc:             "image with no special chars and tag with slashes",
+			imageName:        "structor",
+			tagName:          "feature/antenna",
+			expectedFullName: "structor:feature-antenna",
+		},
+		{
+			desc:             "image with slashes and tag with no special chars",
+			imageName:        "structor/feature",
+			tagName:          "antenna",
+			expectedFullName: "structor-feature:antenna",
+		},
+		{
+			desc:             "image with column and tag with no special chars",
+			imageName:        "structor:feature",
+			tagName:          "antenna",
+			expectedFullName: "structor-feature:antenna",
+		},
+		{
+			desc:             "image with no special chars and tag with column",
+			imageName:        "structor",
+			tagName:          "feature:antenna",
+			expectedFullName: "structor:feature-antenna",
+		},
+		{
+			desc:             "Mix of everything: slashes and columns",
+			imageName:        "struct:or/feat",
+			tagName:          "ant/en:na",
+			expectedFullName: "struct-or-feat:ant-en-na",
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			dockerFullImageName := getDockerImageFullName(test.imageName, test.tagName)
+			assert.Equal(t, dockerFullImageName, test.expectedFullName)
+		})
+	}
+}

@@ -162,23 +162,29 @@ func buildDocumentation(branches []string, branchRef string, versionsInfo types.
 		return err
 	}
 
-	dockerTagName := baseDockerfile.imageName + ":" + versionsInfo.Current
+	dockerImageFullName := getDockerImageFullName(baseDockerfile.imageName, versionsInfo.Current)
 
 	// Build image
-	output, err := dockerCmd(config.Debug, "build", "--no-cache="+strconv.FormatBool(config.NoCache), "-t", dockerTagName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
+	output, err := dockerCmd(config.Debug, "build", "--no-cache="+strconv.FormatBool(config.NoCache), "-t", dockerImageFullName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
 		return err
 	}
 
 	// Run image
-	output, err = dockerCmd(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerTagName, "mkdocs", "build")
+	output, err = dockerCmd(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerImageFullName, "mkdocs", "build")
 	if err != nil {
 		log.Println(output)
 		return err
 	}
 
 	return nil
+}
+
+// getDockerImageFullName returns the full docker image name, in the form image:tag. Please note that normalization is applied to avoid fordbidden characters
+func getDockerImageFullName(imageName string, tagName string) string {
+	r := strings.NewReplacer(":", "-", "/", "-")
+	return r.Replace(imageName) + ":" + r.Replace(tagName)
 }
 
 func getLatestReleaseTagName(repoID types.RepoID) (string, error) {
