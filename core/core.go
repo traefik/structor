@@ -147,38 +147,24 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 // If the current version (branch) name is related to the latest tag, then it's copied at the root of the output directory.
 // Else it is copied under a directory named after the version, at the root of the output directory.
 func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir string) error {
-	outputDir := siteDir
-	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
-		currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
-		if err != nil {
-			return err
-		}
-		err = copy.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
-		if err != nil {
-			return err
-		}
-	}
-
-	outputDir = filepath.Join(outputDir, versionsInfo.Current)
-	err := copy.Copy(filepath.Join(versionsInfo.CurrentPath, "site"), outputDir)
+	currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
 	if err != nil {
 		return err
 	}
-	return nil
+
+	outputDir := siteDir
+	if !strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+		outputDir = filepath.Join(siteDir, versionsInfo.Current)
+	}
+
+	return copy.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 }
 
 // getDocumentationRoot returns the path to the documentation's root by searching for "${menu.ManifestFileName}".
 // Search is done from the docsRootSearchPath, relatively to the provided repository path.
 // An additional sanity checking is done on the file named "requirements.txt" which must be located in the same directory.
 func getDocumentationRoot(repositoryRoot string) (string, error) {
-	if repositoryRoot == "" {
-		return "", errors.New("repositoryRoot is undefined")
-	}
-	if _, err := os.Stat(repositoryRoot); os.IsNotExist(err) {
-		return "", err
-	}
-
-	var docsRootSearchPaths = [...]string{"/", "docs/"}
+	var docsRootSearchPaths = []string{"/", "docs/"}
 
 	for _, docsRootSearchPath := range docsRootSearchPaths {
 		candidateDocsRootPath := filepath.Join(repositoryRoot, docsRootSearchPath)
@@ -189,6 +175,8 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 			return candidateDocsRootPath, nil
 		}
 	}
+	return "", fmt.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
+}
 
 // checkRequirements return an error if the requirements file is not found in the doc root directory.
 func checkRequirements(docRoot string) error {
