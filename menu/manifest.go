@@ -18,7 +18,7 @@ func editManifest(mkdocsFilePath string, versionJsFile string, versionCSSFile st
 
 	err = yaml.Unmarshal(bytes, manif)
 	if err != nil {
-		return errors.Wrap(err, "error when unmarshal MkDocs Manifest.")
+		return errors.Wrap(err, "error when during unmarshal of the MkDocs Manifest.")
 	}
 
 	// Append menu JS file

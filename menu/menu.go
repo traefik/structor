@@ -2,6 +2,7 @@ package menu
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,12 +28,18 @@ const menuCSSFileName = "structor-menu.css"
 // Build the menu
 func Build(versionsInfo types.VersionsInformation, branches []string, menuContent types.MenuContent) error {
 	manifestFile := filepath.Join(versionsInfo.CurrentPath, manifest.FileName)
+	manifestDocsDir, err := manifest.GetManifestDocsDir(manifestFile)
+	if err != nil {
+		return err
+	}
+	log.Printf("Using docs_dir from manifest: %s", manifestDocsDir)
 
 	var manifestJsFilePath string
 	if len(menuContent.Js) > 0 {
+
 		manifestJsFilePath = filepath.Join("theme", "js", menuJsFileName)
 
-		jsDir := filepath.Join(versionsInfo.CurrentPath, "docs", "theme", "js")
+		jsDir := filepath.Join(manifestDocsDir, "theme", "js")
 		_, errStat := os.Stat(jsDir)
 		if os.IsNotExist(errStat) {
 			errDir := os.MkdirAll(jsDir, os.ModePerm)
@@ -52,7 +59,7 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 	if len(menuContent.CSS) > 0 {
 		manifestCSSFilePath = filepath.Join("theme", "css", menuCSSFileName)
 
-		cssDir := filepath.Join(versionsInfo.CurrentPath, "docs", "theme", "css")
+		cssDir := filepath.Join(manifestDocsDir, "theme", "css")
 		_, errStat := os.Stat(cssDir)
 		if os.IsNotExist(errStat) {
 			errDir := os.MkdirAll(cssDir, os.ModePerm)
@@ -67,7 +74,7 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 		}
 	}
 
-	err := editManifest(manifestFile, manifestJsFilePath, manifestCSSFilePath)
+	err = editManifest(manifestFile, manifestJsFilePath, manifestCSSFilePath)
 	if err != nil {
 		return errors.Wrap(err, "error when edit MkDocs manifest")
 	}
