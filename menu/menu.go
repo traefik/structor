@@ -25,7 +25,7 @@ const menuCSSFileName = "structor-menu.css"
 
 // Build the menu
 func Build(versionsInfo types.VersionsInformation, branches []string, menuContent types.MenuContent) error {
-	manifestFile := filepath.Join(versionsInfo.CurrentPath, "mkdocs.yml")
+	manifestFile := filepath.Join(versionsInfo.CurrentPath, ManifestFileName)
 
 	var manifestJsFilePath string
 	if len(menuContent.Js) > 0 {

@@ -184,6 +184,93 @@ func Test_findDockerFile(t *testing.T) {
 	}
 }
 
+func Test_getDocumentationRoot(t *testing.T) {
+	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
+	defer func() { _ = os.Remove(workingDirBasePath) }()
+	require.NoError(t, err)
+
+	testCases := []struct {
+		desc                 string
+		workingDirectory     string
+		repositoryFiles      []string
+		expectedDocsRoot     string
+		expectedErrorMessage string
+	}{
+		{
+			desc:                 "working case with mkdocs and requirements.txt in the root of the repository",
+			workingDirectory:     filepath.Join(workingDirBasePath, "mkdocs-req-both-in-root"),
+			repositoryFiles:      []string{"mkdocs.yml", "requirements.txt", "docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expectedDocsRoot:     filepath.Join(workingDirBasePath, "mkdocs-req-both-in-root"),
+			expectedErrorMessage: "",
+		},
+		{
+			desc:                 "working case with mkdocs and requirements.txt both in ./docs",
+			workingDirectory:     filepath.Join(workingDirBasePath, "mkdocs-req-both-in-docs"),
+			repositoryFiles:      []string{"docs/mkdocs.yml", "docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expectedDocsRoot:     filepath.Join(workingDirBasePath, "mkdocs-req-both-in-docs", "docs"),
+			expectedErrorMessage: "",
+		},
+		{
+			desc:                 "error case with mkdocs in the root and requirements.txt in ./docs",
+			workingDirectory:     filepath.Join(workingDirBasePath, "mkdocs-in-root-req-in-docs"),
+			repositoryFiles:      []string{"mkdocs.yml", "docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expectedDocsRoot:     "",
+			expectedErrorMessage: "stat " + workingDirBasePath + "/mkdocs-in-root-req-in-docs/requirements.txt: no such file or directory",
+		},
+		{
+			desc:                 "error case with mkdocs in ./docs and requirements.txt in the root",
+			workingDirectory:     filepath.Join(workingDirBasePath, "mkdocs-in-docs-req-in-root"),
+			repositoryFiles:      []string{"docs/mkdocs.yml", "requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expectedDocsRoot:     "",
+			expectedErrorMessage: "stat " + workingDirBasePath + "/mkdocs-in-docs-req-in-root/docs/requirements.txt: no such file or directory",
+		},
+		{
+			desc:                 "error case with no mkdocs file found in the search path",
+			workingDirectory:     filepath.Join(workingDirBasePath, "no-mkdocs-in-search-path"),
+			repositoryFiles:      []string{"documentation/mkdocs.yml", "documentation/requirements.txt", "documentation/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expectedDocsRoot:     "",
+			expectedErrorMessage: "no file mkdocs.yml found in " + workingDirBasePath + "/no-mkdocs-in-search-path (search path was: /,docs/)",
+		},
+		{
+			desc:                 "error case with no mkdocs file found at all",
+			workingDirectory:     filepath.Join(workingDirBasePath, "no-mkdocs-at-all"),
+			repositoryFiles:      []string{"docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expectedDocsRoot:     "",
+			expectedErrorMessage: "no file mkdocs.yml found in " + workingDirBasePath + "/no-mkdocs-at-all (search path was: /,docs/)",
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+
+			if test.workingDirectory != "" {
+				err = os.MkdirAll(test.workingDirectory, os.ModePerm)
+				require.NoError(t, err)
+			}
+
+			if test.repositoryFiles != nil {
+				for _, repositoryFile := range test.repositoryFiles {
+					absoluteRepositoryFilePath := filepath.Join(test.workingDirectory, repositoryFile)
+					err := os.MkdirAll(filepath.Dir(absoluteRepositoryFilePath), os.ModePerm)
+					require.NoError(t, err)
+					_, err = os.Create(absoluteRepositoryFilePath)
+					require.NoError(t, err)
+				}
+			}
+
+			resultingDocsRoot, resultingError := getDocumentationRoot(test.workingDirectory)
+
+			if test.expectedErrorMessage != "" {
+				assert.EqualError(t, resultingError, test.expectedErrorMessage)
+			} else {
+				require.NoError(t, resultingError)
+				assert.Equal(t, test.expectedDocsRoot, resultingDocsRoot)
+			}
+		})
+	}
+}
+
 func Test_getDockerImageFullName(t *testing.T) {
 
 	testCases := []struct {

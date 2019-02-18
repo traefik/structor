@@ -100,18 +100,29 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 
 	for _, branchRef := range branches {
 		versionName := strings.Replace(branchRef, baseRemote, "", 1)
+		versionCurrentPath := filepath.Join(workDir, versionName)
 
 		log.Printf("Generating doc for version %s", versionName)
+
+		err := repository.CreateWorkTree(versionCurrentPath, branchRef, config.Debug)
+		if err != nil {
+			return err
+		}
+
+		versionDocsRoot, err := getDocumentationRoot(versionCurrentPath)
+		if err != nil {
+			return err
+		}
 
 		versionsInfo := types.VersionsInformation{
 			Current:      versionName,
 			Latest:       latestTagName,
 			Experimental: config.ExperimentalBranchName,
-			CurrentPath:  filepath.Join(workDir, versionName),
+			CurrentPath:  versionDocsRoot,
 		}
 		fallbackDockerfile.path = filepath.Join(versionsInfo.CurrentPath, fallbackDockerfile.name)
 
-		err = buildDocumentation(branches, branchRef, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
+		err = buildDocumentation(branches, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
 		if err != nil {
 			return err
 		}
@@ -134,15 +145,42 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 	return nil
 }
 
-func buildDocumentation(branches []string, branchRef string, versionsInfo types.VersionsInformation,
-	fallbackDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte,
-	config *types.Configuration) error {
-	err := repository.CreateWorkTree(versionsInfo.CurrentPath, branchRef, config.Debug)
-	if err != nil {
-		return err
+// getDocumentationRoot returns the path to the documentation's root by searching for "${menu.ManifestFileName}".
+// Search is done from the docsRootSearchPath, relatively to the provided repository path.
+// An additional sanity checking is done on the file named "requirements.txt" which must be located in the same directory.
+func getDocumentationRoot(repositoryRoot string) (string, error) {
+	if repositoryRoot == "" {
+		return "", errors.New("repositoryRoot is undefined")
+	}
+	if _, err := os.Stat(repositoryRoot); os.IsNotExist(err) {
+		return "", err
 	}
 
-	err = menu.Build(versionsInfo, branches, menuTemplateContent)
+	var docsRootSearchPaths = [...]string{"/", "docs/"}
+
+	for _, docsRootSearchPath := range docsRootSearchPaths {
+		candidateDocsRootPath := filepath.Join(repositoryRoot, docsRootSearchPath)
+
+		if _, err := os.Stat(filepath.Join(candidateDocsRootPath, menu.ManifestFileName)); !os.IsNotExist(err) {
+			log.Printf("Found %s for building documentation in %s.", menu.ManifestFileName, candidateDocsRootPath)
+
+			// Sanity checking: the file "requirements.txt" must be in the candidate directory, next to manifest file
+			if _, err := os.Stat(filepath.Join(candidateDocsRootPath, "requirements.txt")); os.IsNotExist(err) {
+				return "", err
+			}
+
+			return candidateDocsRootPath, nil
+		}
+	}
+
+	return "", errors.New("no file " + menu.ManifestFileName + " found in " + repositoryRoot + " (search path was: " + strings.Join(docsRootSearchPaths[:], ",") + ")")
+}
+
+func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
+	fallbackDockerfile dockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte,
+	config *types.Configuration) error {
+
+	err := menu.Build(versionsInfo, branches, menuTemplateContent)
 	if err != nil {
 		return err
 	}
