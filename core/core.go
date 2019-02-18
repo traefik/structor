@@ -115,6 +115,11 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 			return err
 		}
 
+		err = checkRequirements(versionDocsRoot)
+		if err != nil {
+			return err
+		}
+
 		versionsInfo := types.VersionsInformation{
 			Current:      versionName,
 			Latest:       latestTagName,
@@ -185,7 +190,12 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 		}
 	}
 
-	return "", errors.New("no file " + menu.ManifestFileName + " found in " + repositoryRoot + " (search path was: " + strings.Join(docsRootSearchPaths[:], ",") + ")")
+// checkRequirements return an error if the requirements file is not found in the doc root directory.
+func checkRequirements(docRoot string) error {
+	if _, err := os.Stat(filepath.Join(docRoot, "requirements.txt")); os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
