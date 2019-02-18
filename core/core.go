@@ -127,21 +127,37 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 			return err
 		}
 
-		outputDir := siteDir
-		if strings.HasPrefix(latestTagName, versionName) {
-			err = copy.Copy(filepath.Join(versionsInfo.CurrentPath, "site"), outputDir)
-			if err != nil {
-				return err
-			}
+		err = copyVersionSiteToOutputSite(versionsInfo, siteDir)
+		if err != nil {
+			return err
 		}
 
-		outputDir = filepath.Join(outputDir, versionName)
-		err = copy.Copy(filepath.Join(versionsInfo.CurrentPath, "site"), outputDir)
+	}
+
+	return nil
+}
+
+// copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.
+// If the current version (branch) name is related to the latest tag, then it's copied at the root of the output directory.
+// Else it is copied under a directory named after the version, at the root of the output directory.
+func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir string) error {
+	outputDir := siteDir
+	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+		currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
+		if err != nil {
+			return err
+		}
+		err = copy.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 		if err != nil {
 			return err
 		}
 	}
 
+	outputDir = filepath.Join(outputDir, versionsInfo.Current)
+	err := copy.Copy(filepath.Join(versionsInfo.CurrentPath, "site"), outputDir)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
