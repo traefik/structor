@@ -180,10 +180,8 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 
 // checkRequirements return an error if the requirements file is not found in the doc root directory.
 func checkRequirements(docRoot string) error {
-	if _, err := os.Stat(filepath.Join(docRoot, "requirements.txt")); os.IsNotExist(err) {
-		return err
-	}
-	return nil
+	_, err := os.Stat(filepath.Join(docRoot, "requirements.txt"))
+	return err
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
