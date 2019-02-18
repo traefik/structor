@@ -8,9 +8,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// ManifestFileName file name of the mkdocs manifest file
-const ManifestFileName = "mkdocs.yml"
-
 func editManifest(mkdocsFilePath string, versionJsFile string, versionCSSFile string) error {
 	bytes, err := ioutil.ReadFile(mkdocsFilePath)
 	if err != nil {

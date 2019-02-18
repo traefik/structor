@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/containous/structor/manifest"
 	"github.com/containous/structor/types"
 	"github.com/hashicorp/go-version"
 	"github.com/pkg/errors"
@@ -25,7 +26,7 @@ const menuCSSFileName = "structor-menu.css"
 
 // Build the menu
 func Build(versionsInfo types.VersionsInformation, branches []string, menuContent types.MenuContent) error {
-	manifestFile := filepath.Join(versionsInfo.CurrentPath, ManifestFileName)
+	manifestFile := filepath.Join(versionsInfo.CurrentPath, manifest.FileName)
 
 	var manifestJsFilePath string
 	if len(menuContent.Js) > 0 {

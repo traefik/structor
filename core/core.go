@@ -15,6 +15,7 @@ import (
 
 	"github.com/containous/structor/copy"
 	"github.com/containous/structor/gh"
+	"github.com/containous/structor/manifest"
 	"github.com/containous/structor/menu"
 	"github.com/containous/structor/repository"
 	"github.com/containous/structor/types"
@@ -177,13 +178,8 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 	for _, docsRootSearchPath := range docsRootSearchPaths {
 		candidateDocsRootPath := filepath.Join(repositoryRoot, docsRootSearchPath)
 
-		if _, err := os.Stat(filepath.Join(candidateDocsRootPath, menu.ManifestFileName)); !os.IsNotExist(err) {
-			log.Printf("Found %s for building documentation in %s.", menu.ManifestFileName, candidateDocsRootPath)
-
-			// Sanity checking: the file "requirements.txt" must be in the candidate directory, next to manifest file
-			if _, err := os.Stat(filepath.Join(candidateDocsRootPath, "requirements.txt")); os.IsNotExist(err) {
-				return "", err
-			}
+		if _, err := os.Stat(filepath.Join(candidateDocsRootPath, manifest.FileName)); !os.IsNotExist(err) {
+			log.Printf("Found %s for building documentation in %s.", manifest.FileName, candidateDocsRootPath)
 
 			return candidateDocsRootPath, nil
 		}
