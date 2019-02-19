@@ -37,5 +37,5 @@
   max-same-issues = 0
   exclude = []
   [[issues.exclude-rules]]
-    path = "meta/version.go"
-    text = "`(Version|BuildDate)` is a global variable"
+    path = "version.go"
+    text = "`(version|date|commit)` is a global variable"
