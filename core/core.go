@@ -171,10 +171,10 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 
 		if _, err := os.Stat(filepath.Join(candidateDocsRootPath, manifest.FileName)); !os.IsNotExist(err) {
 			log.Printf("Found %s for building documentation in %s.", manifest.FileName, candidateDocsRootPath)
-
 			return candidateDocsRootPath, nil
 		}
 	}
+
 	return "", fmt.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
 }
 

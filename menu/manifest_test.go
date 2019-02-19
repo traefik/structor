@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/containous/structor/manifest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -64,7 +65,12 @@ func Test_editManifest(t *testing.T) {
 			testManifest, err := setupTestManifest(test.source)
 			require.NoError(t, err)
 
-			err = editManifest(testManifest, test.versionJsFile, test.versionCSSFile)
+			manif, err := manifest.Read(testManifest)
+			require.NoError(t, err)
+
+			editManifest(manif, test.versionJsFile, test.versionCSSFile)
+
+			err = manifest.Save(testManifest, manif)
 			require.NoError(t, err)
 
 			assertSameContent(t, test.expected, testManifest)
