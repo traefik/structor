@@ -2,73 +2,103 @@
 
 
 [[projects]]
+  digest = "1:427545cfc59b86e0ebd433a2de0fb77522221681b178285df66bebba796d9a93"
   name = "github.com/containous/flaeg"
   packages = [
     ".",
-    "parse"
+    "parse",
   ]
+  pruneopts = ""
   revision = "b4c2f060875361c070ed2bc300c5929b82f5fa2e"
   version = "v1.1.2"
 
 [[projects]]
+  digest = "1:56c130d885a4aacae1dd9c7b71cfe39912c7ebc1ff7d2b46083c8812996dc43b"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = ""
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:94158926759c3333201f81eee5a21112f7ae9d000b4d6926455008c7ab3fb7fc"
   name = "github.com/hashicorp/go-version"
   packages = ["."]
+  pruneopts = ""
   revision = "23480c0665776210b5fbbac6eaaee40e3e6a96b7"
 
 [[projects]]
+  digest = "1:b0009f58f7d00653db48b2fc0e67f2de7bc63b68459bd1fa0fc6e2e923ae1dd7"
   name = "github.com/ldez/go-git-cmd-wrapper"
   packages = [
     "branch",
     "git",
     "types",
-    "worktree"
+    "worktree",
   ]
+  pruneopts = ""
   revision = "4789812722d1cd40bdaafaa82c5b6644c47b9c81"
   version = "v0.22.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:c5321c18190f47a3cee2e4c357dde460cd66b22b324b97a17fc5145d934f9d56"
   name = "github.com/ogier/pflag"
   packages = ["."]
+  pruneopts = ""
   revision = "45c278ab3607870051a2ea9040bb85fcb8557481"
 
 [[projects]]
+  digest = "1:7365acd48986e205ccb8652cc746f09c8b7876030d53710ea6ef7d0bd0dcd7ca"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = ""
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = ""
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:c587772fb8ad29ad4db67575dad25ba17a51f072ff18a22b4f0257a4d9c24f75"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "require"
+    "require",
   ]
+  pruneopts = ""
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
 [[projects]]
+  digest = "1:f0620375dd1f6251d9973b5f2596228cc8042e887cd7f827e4220bc1ce8c30e2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = ""
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3c9c0bd0a72d8c92c2f306162937853a395d8a1194af026b690663164e6c878a"
+  input-imports = [
+    "github.com/containous/flaeg",
+    "github.com/hashicorp/go-version",
+    "github.com/ldez/go-git-cmd-wrapper/branch",
+    "github.com/ldez/go-git-cmd-wrapper/git",
+    "github.com/ldez/go-git-cmd-wrapper/types",
+    "github.com/ldez/go-git-cmd-wrapper/worktree",
+    "github.com/ogier/pflag",
+    "github.com/pkg/errors",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
