@@ -7,7 +7,6 @@ import (
 
 	"github.com/containous/flaeg"
 	"github.com/containous/structor/core"
-	"github.com/containous/structor/meta"
 	"github.com/containous/structor/types"
 	"github.com/ogier/pflag"
 )
@@ -45,7 +44,7 @@ func main() {
 		Config:                &types.NoOption{},
 		DefaultPointersConfig: &types.NoOption{},
 		Run: func() error {
-			meta.DisplayVersion()
+			displayVersion()
 			return nil
 		},
 	}
