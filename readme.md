@@ -33,6 +33,24 @@ Flags:
 
 The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest tag name.
 
+## Download / CI Integration
+
+```bash
+curl -sfL https://raw.githubusercontent.com/containous/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.4.0
+```
+
+<!--
+To generate the script:
+
+```bash
+godownloader --repo=containous/structor -o godownloader.sh
+
+# or
+
+godownloader --repo=containous/structor > godownloader.sh
+```
+-->
+
 ## Examples
 
 With menu template URL:
