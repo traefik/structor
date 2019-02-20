@@ -1,5 +1,6 @@
 # Messor Structor: Manage multiple documentation versions with Mkdocs.
 
+[![GitHub release](https://img.shields.io/github/release/containous/structor.svg)](https://github.com/containous/structor/releases/latest)
 [![Build Status](https://travis-ci.org/containous/structor.svg?branch=master)](https://travis-ci.org/containous/structor)
 
 ```
