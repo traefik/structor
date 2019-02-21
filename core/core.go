@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containous/structor/copy"
+	"github.com/containous/structor/file"
 	"github.com/containous/structor/gh"
 	"github.com/containous/structor/manifest"
 	"github.com/containous/structor/menu"
@@ -56,7 +55,7 @@ func Execute(config *types.Configuration) error {
 
 	menuContent := getMenuTemplateContent(config.Menu)
 
-	fallbackDockerFileContent, err := downloadFile(config.DockerfileURL)
+	fallbackDockerFileContent, err := file.Download(config.DockerfileURL)
 	if err != nil {
 		return errors.Wrap(err, "failed to download Dockerfile")
 	}
@@ -174,7 +173,7 @@ func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir
 		outputDir = filepath.Join(siteDir, versionsInfo.Current)
 	}
 
-	return copy.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
+	return file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
@@ -295,7 +294,7 @@ func getMenuFileContent(f string, u string) ([]byte, error) {
 		return content, nil
 	}
 
-	content, err := downloadFile(u)
+	content, err := file.Download(u)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to download menu template")
 	}
@@ -314,7 +313,7 @@ func getRequirementsContent(requirementsURL string) ([]byte, error) {
 	if len(requirementsURL) > 0 {
 		_, err := os.Stat(requirementsURL)
 		if err != nil {
-			content, err = downloadFile(requirementsURL)
+			content, err = file.Download(requirementsURL)
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to download Requirements file")
 			}
@@ -439,20 +438,6 @@ func dockerCmd(debug bool, args ...string) (string, error) {
 	output, err := cmd.CombinedOutput()
 
 	return string(output), err
-}
-
-func downloadFile(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, resp.Body.Close()
 }
 
 func cleanAll(workDir string, debug bool) error {
