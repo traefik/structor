@@ -29,8 +29,8 @@ func Read(manifestFilePath string) (map[string]interface{}, error) {
 	return manif, nil
 }
 
-// Save Saves the manifest.
-func Save(manifestFilePath string, manif map[string]interface{}) error {
+// Write Writes the manifest.
+func Write(manifestFilePath string, manif map[string]interface{}) error {
 	out, err := yaml.Marshal(manif)
 	if err != nil {
 		return errors.Wrap(err, "error when marshal MkDocs Manifest.")

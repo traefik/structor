@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	baseRemote              = "origin/"
-	envVarStructorLatestTag = "STRUCTOR_LATEST_TAG"
+	baseRemote      = "origin/"
+	envVarLatestTag = "STRUCTOR_LATEST_TAG"
 )
 
 type dockerfileInformation struct {
@@ -46,7 +46,7 @@ func Execute(config *types.Configuration) error {
 	defer func() {
 		err = cleanAll(workDir, config.Debug)
 		if err != nil {
-			log.Println("Error during cleanning: ", err)
+			log.Println("Error during cleaning: ", err)
 		}
 	}()
 
@@ -137,27 +137,9 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile dockerfileI
 		if err != nil {
 			return err
 		}
-
 	}
 
 	return nil
-}
-
-// copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.
-// If the current version (branch) name is related to the latest tag, then it's copied at the root of the output directory.
-// Else it is copied under a directory named after the version, at the root of the output directory.
-func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir string) error {
-	currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
-	if err != nil {
-		return err
-	}
-
-	outputDir := siteDir
-	if !strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
-		outputDir = filepath.Join(siteDir, versionsInfo.Current)
-	}
-
-	return copy.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 }
 
 // getDocumentationRoot returns the path to the documentation's root by searching for "${menu.ManifestFileName}".
@@ -178,10 +160,21 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 	return "", fmt.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
 }
 
-// checkRequirements return an error if the requirements file is not found in the doc root directory.
-func checkRequirements(docRoot string) error {
-	_, err := os.Stat(filepath.Join(docRoot, "requirements.txt"))
-	return err
+// copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.
+// If the current version (branch) name is related to the latest tag, then it's copied at the root of the output directory.
+// Else it is copied under a directory named after the version, at the root of the output directory.
+func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir string) error {
+	currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
+	if err != nil {
+		return err
+	}
+
+	outputDir := siteDir
+	if !strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+		outputDir = filepath.Join(siteDir, versionsInfo.Current)
+	}
+
+	return copy.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
@@ -208,7 +201,7 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 		return err
 	}
 
-	dockerImageFullName := getDockerImageFullName(baseDockerfile.imageName, versionsInfo.Current)
+	dockerImageFullName := buildDockerImageFullName(baseDockerfile.imageName, versionsInfo.Current)
 
 	// Build image
 	output, err := dockerCmd(config.Debug, "build", "--no-cache="+strconv.FormatBool(config.NoCache), "-t", dockerImageFullName, "-f", baseDockerfile.path, versionsInfo.CurrentPath+"/")
@@ -227,14 +220,8 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 	return nil
 }
 
-// getDockerImageFullName returns the full docker image name, in the form image:tag. Please note that normalization is applied to avoid fordbidden characters
-func getDockerImageFullName(imageName string, tagName string) string {
-	r := strings.NewReplacer(":", "-", "/", "-")
-	return r.Replace(imageName) + ":" + r.Replace(tagName)
-}
-
 func getLatestReleaseTagName(repoID types.RepoID) (string, error) {
-	latest := os.Getenv(envVarStructorLatestTag)
+	latest := os.Getenv(envVarLatestTag)
 	if len(latest) > 0 {
 		return latest, nil
 	}
@@ -315,6 +302,12 @@ func getMenuFileContent(f string, u string) ([]byte, error) {
 	return content, nil
 }
 
+// checkRequirements return an error if the requirements file is not found in the doc root directory.
+func checkRequirements(docRoot string) error {
+	_, err := os.Stat(filepath.Join(docRoot, "requirements.txt"))
+	return err
+}
+
 func getRequirementsContent(requirementsURL string) ([]byte, error) {
 	var content []byte
 
@@ -392,33 +385,11 @@ func parseRequirements(content []byte) (map[string]string, error) {
 	return result, nil
 }
 
-func downloadFile(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, resp.Body.Close()
-}
-
-func cleanAll(workDir string, debug bool) error {
-	err := os.RemoveAll(workDir)
-	if err != nil {
-		return err
-	}
-
-	output, err := git.Worktree(worktree.Prune, git.Debugger(debug))
-	if err != nil {
-		log.Println(output)
-		return err
-	}
-
-	return nil
+// buildDockerImageFullName returns the full docker image name, in the form image:tag.
+// Please note that normalization is applied to avoid forbidden characters
+func buildDockerImageFullName(imageName string, tagName string) string {
+	r := strings.NewReplacer(":", "-", "/", "-")
+	return r.Replace(imageName) + ":" + r.Replace(tagName)
 }
 
 func getDockerfile(fallbackDockerfile dockerfileInformation, workingDirectory string, dockerfileName string) (*dockerfileInformation, error) {
@@ -468,6 +439,35 @@ func dockerCmd(debug bool, args ...string) (string, error) {
 	output, err := cmd.CombinedOutput()
 
 	return string(output), err
+}
+
+func downloadFile(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, resp.Body.Close()
+}
+
+func cleanAll(workDir string, debug bool) error {
+	err := os.RemoveAll(workDir)
+	if err != nil {
+		return err
+	}
+
+	output, err := git.Worktree(worktree.Prune, git.Debugger(debug))
+	if err != nil {
+		log.Println(output)
+		return err
+	}
+
+	return nil
 }
 
 func createDirectory(directoryPath string) error {

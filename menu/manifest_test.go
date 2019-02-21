@@ -70,7 +70,7 @@ func Test_editManifest(t *testing.T) {
 
 			editManifest(manif, test.versionJsFile, test.versionCSSFile)
 
-			err = manifest.Save(testManifest, manif)
+			err = manifest.Write(testManifest, manif)
 			require.NoError(t, err)
 
 			assertSameContent(t, test.expected, testManifest)

@@ -64,9 +64,9 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-			err := os.Setenv(envVarStructorLatestTag, test.envVarLatestTag)
+			err := os.Setenv(envVarLatestTag, test.envVarLatestTag)
 			require.NoError(t, err)
-			defer func() { _ = os.Unsetenv(envVarStructorLatestTag) }()
+			defer func() { _ = os.Unsetenv(envVarLatestTag) }()
 
 			tagName, err := getLatestReleaseTagName(test.repo)
 			require.NoError(t, err)
@@ -369,7 +369,7 @@ func Test_getDockerImageFullName(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			dockerFullImageName := getDockerImageFullName(test.imageName, test.tagName)
+			dockerFullImageName := buildDockerImageFullName(test.imageName, test.tagName)
 			assert.Equal(t, dockerFullImageName, test.expectedFullName)
 		})
 	}

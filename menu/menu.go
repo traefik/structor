@@ -53,7 +53,7 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 
 	editManifest(manif, manifestJsFilePath, manifestCSSFilePath)
 
-	err = manifest.Save(manifestFile, manif)
+	err = manifest.Write(manifestFile, manif)
 	if err != nil {
 		return errors.Wrap(err, "error when edit MkDocs manifest")
 	}
