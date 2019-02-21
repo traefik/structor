@@ -20,6 +20,7 @@ func Check(docRoot string) error {
 	return err
 }
 
+// GetContent Gets the content of the "requirements.txt".
 func GetContent(requirementsURL string) ([]byte, error) {
 	var content []byte
 
@@ -40,6 +41,7 @@ func GetContent(requirementsURL string) ([]byte, error) {
 	return content, nil
 }
 
+// Build Builds a "requirements.txt" file.
 func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 	if len(customContent) > 0 {
 		requirementsPath := filepath.Join(versionsInfo.CurrentPath, "requirements.txt")
@@ -64,14 +66,14 @@ func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 			reqBase[key] = value
 		}
 
-		file, err := os.Create(requirementsPath)
+		f, err := os.Create(requirementsPath)
 		if err != nil {
 			return err
 		}
-		defer safeClose(file.Close)
+		defer safeClose(f.Close)
 
 		for key, value := range reqBase {
-			fmt.Fprintf(file, "%s%s\n", key, value)
+			fmt.Fprintf(f, "%s%s\n", key, value)
 		}
 	}
 	return nil

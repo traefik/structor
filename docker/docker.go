@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// DockerfileInformation Dockerfile information.
 type DockerfileInformation struct {
 	Name      string
 	Path      string
@@ -20,6 +21,7 @@ type DockerfileInformation struct {
 	ImageName string
 }
 
+// BuildImage Builds a Docker image.
 func BuildImage(config *types.Configuration, fallbackDockerfile DockerfileInformation, versionsInfo types.VersionsInformation) (string, error) {
 	baseDockerfile, err := getDockerfile(fallbackDockerfile, versionsInfo.CurrentPath, config.DockerfileName)
 	if err != nil {
@@ -43,6 +45,7 @@ func BuildImage(config *types.Configuration, fallbackDockerfile DockerfileInform
 	return dockerImageFullName, nil
 }
 
+// Exec Executes a docker command.
 func Exec(debug bool, args ...string) (string, error) {
 	cmdName := "docker"
 
@@ -93,7 +96,7 @@ func getDockerfile(fallbackDockerfile DockerfileInformation, workingDirectory st
 }
 
 // buildImageFullName returns the full docker image name, in the form image:tag.
-// Please note that normalization is applied to avoid forbidden characters
+// Please note that normalization is applied to avoid forbidden characters.
 func buildImageFullName(imageName string, tagName string) string {
 	r := strings.NewReplacer(":", "-", "/", "-")
 	return r.Replace(imageName) + ":" + r.Replace(tagName)
