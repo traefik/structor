@@ -5,7 +5,7 @@
 
 Structor use git branches to create the versions of a documentation, only works with Mkdocs.
 
-To use Structor a project must respect [semver](https://semver.org) and create branch for each `MINOR` and `MAJOR` version.
+To use Structor a project must respect [semver](https://semver.org) and creates a branch for each `MINOR` and `MAJOR` version.
 
 Used by [Traefik](https://github.com/containous/traefik): https://docs.traefik.io
 
