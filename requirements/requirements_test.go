@@ -25,7 +25,6 @@ func TestCheck(t *testing.T) {
 			desc:                  "working case with requirements.txt in the provided directory",
 			workingDirectory:      filepath.Join(workingDirBasePath, "requirements-found"),
 			workingDirectoryFiles: []string{"mkdocs.yml", "requirements.txt"},
-			expectedErrorMessage:  "",
 		},
 		{
 			desc:                  "error case with no requirements.txt file found in the provided directory",
@@ -47,8 +46,10 @@ func TestCheck(t *testing.T) {
 			if test.workingDirectoryFiles != nil {
 				for _, repositoryFile := range test.workingDirectoryFiles {
 					absoluteRepositoryFilePath := filepath.Join(test.workingDirectory, repositoryFile)
+
 					err := os.MkdirAll(filepath.Dir(absoluteRepositoryFilePath), os.ModePerm)
 					require.NoError(t, err)
+
 					_, err = os.Create(absoluteRepositoryFilePath)
 					require.NoError(t, err)
 				}

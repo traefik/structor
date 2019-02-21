@@ -14,9 +14,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const filename = "requirements.txt"
+
 // Check return an error if the requirements file is not found in the doc root directory.
 func Check(docRoot string) error {
-	_, err := os.Stat(filepath.Join(docRoot, "requirements.txt"))
+	_, err := os.Stat(filepath.Join(docRoot, filename))
 	return err
 }
 
@@ -44,7 +46,7 @@ func GetContent(requirementsURL string) ([]byte, error) {
 // Build Builds a "requirements.txt" file.
 func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 	if len(customContent) > 0 {
-		requirementsPath := filepath.Join(versionsInfo.CurrentPath, "requirements.txt")
+		requirementsPath := filepath.Join(versionsInfo.CurrentPath, filename)
 
 		baseContent, err := ioutil.ReadFile(requirementsPath)
 		if err != nil {
