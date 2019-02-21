@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -8,7 +9,9 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/containous/structor/file"
 	"github.com/containous/structor/types"
 	"github.com/pkg/errors"
 )
@@ -19,6 +22,20 @@ type DockerfileInformation struct {
 	Path      string
 	Content   []byte
 	ImageName string
+}
+
+// GetDockerfileFallback Downloads and creates the DockerfileInformation of the Dockerfile fallback.
+func GetDockerfileFallback(dockerfileURL, imageName string) (DockerfileInformation, error) {
+	fallbackDockerFileContent, err := file.Download(dockerfileURL)
+	if err != nil {
+		return DockerfileInformation{}, errors.Wrap(err, "failed to download Dockerfile")
+	}
+
+	return DockerfileInformation{
+		Name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
+		Content:   fallbackDockerFileContent,
+		ImageName: imageName,
+	}, nil
 }
 
 // BuildImage Builds a Docker image.

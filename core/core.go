@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/containous/structor/docker"
 	"github.com/containous/structor/file"
@@ -47,15 +46,9 @@ func Execute(config *types.Configuration) error {
 
 	menuContent := getMenuTemplateContent(config.Menu)
 
-	fallbackDockerFileContent, err := file.Download(config.DockerfileURL)
+	fallbackDockerfile, err := docker.GetDockerfileFallback(config.DockerfileURL, config.DockerImageName)
 	if err != nil {
-		return errors.Wrap(err, "failed to download Dockerfile")
-	}
-
-	fallbackDockerfile := docker.DockerfileInformation{
-		Name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
-		Content:   fallbackDockerFileContent,
-		ImageName: config.DockerImageName,
+		return err
 	}
 
 	repoID := types.RepoID{
