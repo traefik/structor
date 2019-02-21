@@ -3,7 +3,15 @@
 [![GitHub release](https://img.shields.io/github/release/containous/structor.svg)](https://github.com/containous/structor/releases/latest)
 [![Build Status](https://travis-ci.org/containous/structor.svg?branch=master)](https://travis-ci.org/containous/structor)
 
-```
+Structor use git branches to create the versions of a documentation, only works with Mkdocs.
+
+To use Structor a project must respect [semver](https://semver.org) and create branch for each `MINOR` and `MAJOR` version.
+
+Used by [Traefik](https://github.com/containous/traefik): https://docs.traefik.io
+
+## Description
+
+```yaml
 Messor Structor: Manage multiple documentation versions with Mkdocs.
 
 Usage: structor [--flag=flag_argument] [-f[flag_argument]] ...     set flag_argument to flag(s)
@@ -28,8 +36,6 @@ Flags:
     --rqts-url       URL of the requirements.txt file.                                     
 -h, --help           Print Help (this message) and exit                                     
 ```
-
-## Description
 
 The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest tag name.
 
