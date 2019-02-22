@@ -128,7 +128,7 @@ func TestGetDocsDir(t *testing.T) {
 			desc:             "no docs_dir attribute",
 			manifestFilePath: filepath.Join("foo", "bar", FileName),
 			content:          map[string]interface{}{},
-			expected:         filepath.Join("foo", "bar"),
+			expected:         filepath.Join("foo", "bar", "docs"),
 		},
 		{
 			desc:             "with docs_dir attribute",
