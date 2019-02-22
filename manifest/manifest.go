@@ -47,7 +47,8 @@ func GetDocsDir(manifestFilePath string, manif map[string]interface{}) (string, 
 	if value, ok := manif["docs_dir"]; ok {
 		return filepath.Join(manifestDir, value.(string)), nil
 	}
-	return manifestDir, nil
+	// https://www.mkdocs.org/user-guide/configuration/#docs_dir
+	return filepath.Join(manifestDir, "docs"), nil
 }
 
 // AppendExtraJs Appends a file path to the "extra_javascript" in the manifest file.
