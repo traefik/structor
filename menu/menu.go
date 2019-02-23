@@ -109,6 +109,27 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 	return nil
 }
 
+func writeCSSFile(manifestDocsDir string, menuContent Content) (string, error) {
+	if len(menuContent.CSS) == 0 {
+		return "", nil
+	}
+
+	cssDir := filepath.Join(manifestDocsDir, "theme", "css")
+	if _, errStat := os.Stat(cssDir); os.IsNotExist(errStat) {
+		errDir := os.MkdirAll(cssDir, os.ModePerm)
+		if errDir != nil {
+			return "", errors.Wrap(errDir, "error when create CSS folder")
+		}
+	}
+
+	err := ioutil.WriteFile(filepath.Join(cssDir, menuCSSFileName), menuContent.CSS, os.ModePerm)
+	if err != nil {
+		return "", errors.Wrap(err, "error when trying ro write CSS file")
+	}
+
+	return filepath.Join("theme", "css", menuCSSFileName), nil
+}
+
 func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types.VersionsInformation, branches []string) (string, error) {
 	if len(menuContent.Js) == 0 {
 		return "", nil
@@ -129,27 +150,6 @@ func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types
 	}
 
 	return filepath.Join("theme", "js", menuJsFileName), nil
-}
-
-func writeCSSFile(manifestDocsDir string, menuContent Content) (string, error) {
-	if len(menuContent.CSS) == 0 {
-		return "", nil
-	}
-
-	cssDir := filepath.Join(manifestDocsDir, "theme", "css")
-	if _, errStat := os.Stat(cssDir); os.IsNotExist(errStat) {
-		errDir := os.MkdirAll(cssDir, os.ModePerm)
-		if errDir != nil {
-			return "", errors.Wrap(errDir, "error when create CSS folder")
-		}
-	}
-
-	err := ioutil.WriteFile(cssDir, menuContent.CSS, os.ModePerm)
-	if err != nil {
-		return "", errors.Wrap(err, "error when trying ro write CSS file")
-	}
-
-	return filepath.Join("theme", "css", menuCSSFileName), nil
 }
 
 func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branches []string, menuTemplate string) error {

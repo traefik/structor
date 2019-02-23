@@ -33,5 +33,5 @@ theme:
   logo: img/traefik.logo.png
   name: material
   palette:
-    accent: cyan
-    primary: cyan
+    accent: light blue
+    primary: blue
