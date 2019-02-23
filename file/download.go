@@ -3,6 +3,8 @@ package file
 import (
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // Download Downloads a file.
@@ -12,10 +14,11 @@ func Download(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+		return nil, errors.Errorf("failed to download %q: %s", url, resp.Status)
 	}
 
-	return body, resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
 }

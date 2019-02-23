@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,6 +17,7 @@ import (
 	"github.com/containous/structor/types"
 	"github.com/ldez/go-git-cmd-wrapper/git"
 	"github.com/ldez/go-git-cmd-wrapper/worktree"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -133,7 +133,7 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
+	return "", errors.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
 }
 
 // copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.
