@@ -42,7 +42,7 @@ The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest
 ## Download / CI Integration
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/containous/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.4.0
+curl -sfL https://raw.githubusercontent.com/containous/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.4.3
 ```
 
 <!--
