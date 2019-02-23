@@ -7,19 +7,18 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/containous/structor/types"
 	"github.com/pkg/errors"
 )
 
 // GetLatestReleaseTagName find the latest release tag name
-func GetLatestReleaseTagName(repoID types.RepoID) (string, error) {
+func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
 
-	baseURL := fmt.Sprintf("https://github.com/%s/%s/releases", repoID.Owner, repoID.RepositoryName)
+	baseURL := fmt.Sprintf("https://github.com/%s/%s/releases", owner, repositoryName)
 
 	resp, err := client.Get(baseURL + "/latest")
 	if err != nil {
@@ -39,9 +38,7 @@ func GetLatestReleaseTagName(repoID types.RepoID) (string, error) {
 		return "", err
 	}
 
-	tag := strings.TrimPrefix(location.String(), baseURL+"/tag/")
-
-	return tag, nil
+	return strings.TrimPrefix(location.String(), baseURL+"/tag/"), nil
 }
 
 func displayResponseBody(resp *http.Response) {

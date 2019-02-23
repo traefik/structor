@@ -24,36 +24,17 @@ type DockerfileInformation struct {
 	ImageName string
 }
 
-// GetDockerfileFallback Downloads and creates the DockerfileInformation of the Dockerfile fallback.
-func GetDockerfileFallback(dockerfileURL, imageName string) (DockerfileInformation, error) {
-	fallbackDockerFileContent, err := file.Download(dockerfileURL)
-	if err != nil {
-		return DockerfileInformation{}, errors.Wrap(err, "failed to download Dockerfile")
-	}
-
-	return DockerfileInformation{
-		Name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
-		Content:   fallbackDockerFileContent,
-		ImageName: imageName,
-	}, nil
-}
-
 // BuildImage Builds a Docker image.
-func BuildImage(config *types.Configuration, fallbackDockerfile DockerfileInformation, versionsInfo types.VersionsInformation) (string, error) {
-	baseDockerfile, err := getDockerfile(fallbackDockerfile, versionsInfo.CurrentPath, config.DockerfileName)
+func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformation, noCache, debug bool) (string, error) {
+	err := ioutil.WriteFile(d.Path, d.Content, os.ModePerm)
 	if err != nil {
 		return "", err
 	}
 
-	err = ioutil.WriteFile(baseDockerfile.Path, baseDockerfile.Content, os.ModePerm)
-	if err != nil {
-		return "", err
-	}
-
-	dockerImageFullName := buildImageFullName(baseDockerfile.ImageName, versionsInfo.Current)
+	dockerImageFullName := buildImageFullName(d.ImageName, versionsInfo.Current)
 
 	// Build image
-	output, err := Exec(config.Debug, "build", "--no-cache="+strconv.FormatBool(config.NoCache), "-t", dockerImageFullName, "-f", baseDockerfile.Path, versionsInfo.CurrentPath+"/")
+	output, err := Exec(debug, "build", "--no-cache="+strconv.FormatBool(noCache), "-t", dockerImageFullName, "-f", d.Path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
 		return "", err
@@ -62,21 +43,29 @@ func BuildImage(config *types.Configuration, fallbackDockerfile DockerfileInform
 	return dockerImageFullName, nil
 }
 
-// Exec Executes a docker command.
-func Exec(debug bool, args ...string) (string, error) {
-	cmdName := "docker"
-
-	if debug {
-		log.Println(cmdName, strings.Join(args, " "))
-	}
-
-	cmd := exec.Command(cmdName, args...)
-	output, err := cmd.CombinedOutput()
-
-	return string(output), err
+// buildImageFullName returns the full docker image name, in the form image:tag.
+// Please note that normalization is applied to avoid forbidden characters.
+func buildImageFullName(imageName string, tagName string) string {
+	r := strings.NewReplacer(":", "-", "/", "-")
+	return r.Replace(imageName) + ":" + r.Replace(tagName)
 }
 
-func getDockerfile(fallbackDockerfile DockerfileInformation, workingDirectory string, dockerfileName string) (*DockerfileInformation, error) {
+// GetDockerfileFallback Downloads and creates the DockerfileInformation of the Dockerfile fallback.
+func GetDockerfileFallback(dockerfileURL, imageName string) (DockerfileInformation, error) {
+	dockerFileContent, err := file.Download(dockerfileURL)
+	if err != nil {
+		return DockerfileInformation{}, errors.Wrap(err, "failed to download Dockerfile")
+	}
+
+	return DockerfileInformation{
+		Name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
+		Content:   dockerFileContent,
+		ImageName: imageName,
+	}, nil
+}
+
+// GetDockerfile Gets the effective Dockerfile.
+func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInformation, dockerfileName string) (*DockerfileInformation, error) {
 	if workingDirectory == "" {
 		return nil, errors.New("workingDirectory is undefined")
 	}
@@ -98,13 +87,13 @@ func getDockerfile(fallbackDockerfile DockerfileInformation, workingDirectory st
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to get dockerfile file content.")
 			}
-			baseDockerfile := DockerfileInformation{
+
+			return &DockerfileInformation{
 				Name:      dockerfileName,
 				Path:      searchPath,
 				ImageName: fallbackDockerfile.ImageName,
 				Content:   dockerFileContent,
-			}
-			return &baseDockerfile, nil
+			}, nil
 		}
 	}
 
@@ -112,9 +101,15 @@ func getDockerfile(fallbackDockerfile DockerfileInformation, workingDirectory st
 	return &fallbackDockerfile, nil
 }
 
-// buildImageFullName returns the full docker image name, in the form image:tag.
-// Please note that normalization is applied to avoid forbidden characters.
-func buildImageFullName(imageName string, tagName string) string {
-	r := strings.NewReplacer(":", "-", "/", "-")
-	return r.Replace(imageName) + ":" + r.Replace(tagName)
+// Exec Executes a docker command.
+func Exec(debug bool, args ...string) (string, error) {
+	cmdName := "docker"
+
+	if debug {
+		log.Println(cmdName, strings.Join(args, " "))
+	}
+
+	output, err := exec.Command(cmdName, args...).CombinedOutput()
+
+	return string(output), err
 }

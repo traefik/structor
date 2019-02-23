@@ -72,7 +72,7 @@ func Test_buildImageFullName(t *testing.T) {
 	}
 }
 
-func Test_getDockerfile(t *testing.T) {
+func TestGetDockerfile(t *testing.T) {
 	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
 	defer func() { _ = os.Remove(workingDirBasePath) }()
 	require.NoError(t, err)
@@ -168,7 +168,7 @@ func Test_getDockerfile(t *testing.T) {
 				}
 			}
 
-			resultingDockerfile, resultingError := getDockerfile(fallbackDockerfile, test.workingDirectory, test.dockerfileName)
+			resultingDockerfile, resultingError := GetDockerfile(test.workingDirectory, fallbackDockerfile, test.dockerfileName)
 
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)

@@ -18,7 +18,6 @@ import (
 	"github.com/containous/structor/types"
 	"github.com/ldez/go-git-cmd-wrapper/git"
 	"github.com/ldez/go-git-cmd-wrapper/worktree"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -34,8 +33,7 @@ func Execute(config *types.Configuration) error {
 	}
 
 	defer func() {
-		err = cleanAll(workDir, config.Debug)
-		if err != nil {
+		if err = cleanAll(workDir, config.Debug); err != nil {
 			log.Println("Error during cleaning: ", err)
 		}
 	}()
@@ -44,16 +42,15 @@ func Execute(config *types.Configuration) error {
 		log.Printf("Temp directory: %s", workDir)
 	}
 
-	menuContent := getMenuTemplateContent(config.Menu)
+	return process(workDir, config)
+}
+
+func process(workDir string, config *types.Configuration) error {
+	menuContent := menu.GetTemplateContent(config.Menu)
 
 	fallbackDockerfile, err := docker.GetDockerfileFallback(config.DockerfileURL, config.DockerImageName)
 	if err != nil {
 		return err
-	}
-
-	repoID := types.RepoID{
-		Owner:          config.Owner,
-		RepositoryName: config.RepositoryName,
 	}
 
 	requirementsContent, err := requirements.GetContent(config.RequirementsURL)
@@ -61,12 +58,7 @@ func Execute(config *types.Configuration) error {
 		return err
 	}
 
-	return process(workDir, repoID, fallbackDockerfile, menuContent, requirementsContent, config)
-}
-
-func process(workDir string, repoID types.RepoID, fallbackDockerfile docker.DockerfileInformation,
-	menuContent types.MenuContent, requirementsContent []byte, config *types.Configuration) error {
-	latestTagName, err := getLatestReleaseTagName(repoID)
+	latestTagName, err := getLatestReleaseTagName(config.Owner, config.RepositoryName)
 	if err != nil {
 		return err
 	}
@@ -78,7 +70,7 @@ func process(workDir string, repoID types.RepoID, fallbackDockerfile docker.Dock
 		return err
 	}
 
-	siteDir, err := buildSiteDirectory()
+	siteDir, err := createSiteDirectory()
 	if err != nil {
 		return err
 	}
@@ -162,7 +154,7 @@ func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
-	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent types.MenuContent, requirementsContent []byte,
+	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent menu.Content, requirementsContent []byte,
 	config *types.Configuration) error {
 
 	err := menu.Build(versionsInfo, branches, menuTemplateContent)
@@ -175,7 +167,12 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 		return err
 	}
 
-	dockerImageFullName, err := docker.BuildImage(config, fallbackDockerfile, versionsInfo)
+	baseDockerfile, err := docker.GetDockerfile(versionsInfo.CurrentPath, fallbackDockerfile, config.DockerfileName)
+	if err != nil {
+		return err
+	}
+
+	dockerImageFullName, err := baseDockerfile.BuildImage(versionsInfo, config.NoCache, config.Debug)
 	if err != nil {
 		return err
 	}
@@ -190,13 +187,13 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 	return nil
 }
 
-func getLatestReleaseTagName(repoID types.RepoID) (string, error) {
+func getLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	latest := os.Getenv(envVarLatestTag)
 	if len(latest) > 0 {
 		return latest, nil
 	}
 
-	return gh.GetLatestReleaseTagName(repoID)
+	return gh.GetLatestReleaseTagName(owner, repositoryName)
 }
 
 func getBranches(experimentalBranchName string, debug bool) ([]string, error) {
@@ -219,7 +216,7 @@ func getBranches(experimentalBranchName string, debug bool) ([]string, error) {
 	return branches, nil
 }
 
-func buildSiteDirectory() (string, error) {
+func createSiteDirectory() (string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return "", err
@@ -234,42 +231,15 @@ func buildSiteDirectory() (string, error) {
 	return siteDir, nil
 }
 
-func getMenuTemplateContent(menu *types.MenuFiles) types.MenuContent {
-	var content types.MenuContent
-
-	if menu.HasJsFile() {
-		jsContent, err := getMenuFileContent(menu.JsFile, menu.JsURL)
+func createDirectory(directoryPath string) error {
+	if _, err := os.Stat(directoryPath); !os.IsNotExist(err) {
+		err = os.RemoveAll(directoryPath)
 		if err != nil {
-			return types.MenuContent{}
+			return err
 		}
-		content.Js = jsContent
 	}
 
-	if menu.HasCSSFile() {
-		cssContent, err := getMenuFileContent(menu.CSSFile, menu.CSSURL)
-		if err != nil {
-			return types.MenuContent{}
-		}
-		content.CSS = cssContent
-	}
-
-	return content
-}
-
-func getMenuFileContent(f string, u string) ([]byte, error) {
-	if len(f) > 0 {
-		content, err := ioutil.ReadFile(f)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to get template menu file content")
-		}
-		return content, nil
-	}
-
-	content, err := file.Download(u)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to download menu template")
-	}
-	return content, nil
+	return os.MkdirAll(directoryPath, os.ModePerm)
 }
 
 func cleanAll(workDir string, debug bool) error {
@@ -285,16 +255,4 @@ func cleanAll(workDir string, debug bool) error {
 	}
 
 	return nil
-}
-
-func createDirectory(directoryPath string) error {
-	_, err := os.Stat(directoryPath)
-	if !os.IsNotExist(err) {
-		err = os.RemoveAll(directoryPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	return os.MkdirAll(directoryPath, os.ModePerm)
 }

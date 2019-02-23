@@ -14,23 +14,19 @@ import (
 const (
 	defaultDockerImageName = "doc-site"
 	defaultDockerfileName  = "docs.Dockerfile"
-	defaultNoCache         = false
 )
 
 func main() {
 	config := &types.Configuration{
 		DockerImageName: defaultDockerImageName,
 		DockerfileName:  defaultDockerfileName,
-		NoCache:         defaultNoCache,
+		NoCache:         false,
 	}
 
-	defaultPointersConfig := &types.Configuration{
-		Menu: &types.MenuFiles{},
-	}
 	rootCmd := &flaeg.Command{
 		Name:                  "structor",
 		Description:           `Messor Structor: Manage multiple documentation versions with Mkdocs.`,
-		DefaultPointersConfig: defaultPointersConfig,
+		DefaultPointersConfig: &types.Configuration{Menu: &types.MenuFiles{}},
 		Config:                config,
 		Run:                   runCommand(config),
 	}
@@ -73,8 +69,7 @@ func runCommand(config *types.Configuration) func() error {
 			return err
 		}
 
-		err = core.Execute(config)
-		return err
+		return core.Execute(config)
 	}
 }
 

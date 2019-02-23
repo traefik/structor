@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/containous/structor/file"
 	"github.com/containous/structor/manifest"
 	"github.com/containous/structor/types"
 	"github.com/hashicorp/go-version"
@@ -16,8 +17,16 @@ import (
 
 const baseRemote = "origin/"
 
-const menuJsFileName = "structor-menu.js"
-const menuCSSFileName = "structor-menu.css"
+const (
+	menuJsFileName  = "structor-menu.js"
+	menuCSSFileName = "structor-menu.css"
+)
+
+// Content Content of menu files.
+type Content struct {
+	Js  []byte
+	CSS []byte
+}
 
 type optionVersion struct {
 	Path     string
@@ -25,8 +34,47 @@ type optionVersion struct {
 	Selected bool
 }
 
+// GetTemplateContent Gets menu template content.
+func GetTemplateContent(menu *types.MenuFiles) Content {
+	var content Content
+
+	if menu.HasJsFile() {
+		jsContent, err := getMenuFileContent(menu.JsFile, menu.JsURL)
+		if err != nil {
+			return Content{}
+		}
+		content.Js = jsContent
+	}
+
+	if menu.HasCSSFile() {
+		cssContent, err := getMenuFileContent(menu.CSSFile, menu.CSSURL)
+		if err != nil {
+			return Content{}
+		}
+		content.CSS = cssContent
+	}
+
+	return content
+}
+
+func getMenuFileContent(f string, u string) ([]byte, error) {
+	if len(f) > 0 {
+		content, err := ioutil.ReadFile(f)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get template menu file content")
+		}
+		return content, nil
+	}
+
+	content, err := file.Download(u)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to download menu template")
+	}
+	return content, nil
+}
+
 // Build the menu.
-func Build(versionsInfo types.VersionsInformation, branches []string, menuContent types.MenuContent) error {
+func Build(versionsInfo types.VersionsInformation, branches []string, menuContent Content) error {
 	manifestFile := filepath.Join(versionsInfo.CurrentPath, manifest.FileName)
 
 	manif, err := manifest.Read(manifestFile)
@@ -61,51 +109,47 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 	return nil
 }
 
-func writeJsFile(manifestDocsDir string, menuContent types.MenuContent, versionsInfo types.VersionsInformation, branches []string) (string, error) {
-	var manifestJsFilePath string
-	if len(menuContent.Js) > 0 {
+func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types.VersionsInformation, branches []string) (string, error) {
+	if len(menuContent.Js) == 0 {
+		return "", nil
+	}
 
-		manifestJsFilePath = filepath.Join("theme", "js", menuJsFileName)
-
-		jsDir := filepath.Join(manifestDocsDir, "theme", "js")
-		_, errStat := os.Stat(jsDir)
-		if os.IsNotExist(errStat) {
-			errDir := os.MkdirAll(jsDir, os.ModePerm)
-			if errDir != nil {
-				return "", errors.Wrap(errDir, "error when create JS folder")
-			}
-		}
-
-		menuFilePath := filepath.Join(jsDir, menuJsFileName)
-		errBuild := buildJSFile(menuFilePath, versionsInfo, branches, string(menuContent.Js))
-		if errBuild != nil {
-			return "", errBuild
+	jsDir := filepath.Join(manifestDocsDir, "theme", "js")
+	if _, errStat := os.Stat(jsDir); os.IsNotExist(errStat) {
+		errDir := os.MkdirAll(jsDir, os.ModePerm)
+		if errDir != nil {
+			return "", errors.Wrap(errDir, "error when create JS folder")
 		}
 	}
 
-	return manifestJsFilePath, nil
+	menuFilePath := filepath.Join(jsDir, menuJsFileName)
+	errBuild := buildJSFile(menuFilePath, versionsInfo, branches, string(menuContent.Js))
+	if errBuild != nil {
+		return "", errBuild
+	}
+
+	return filepath.Join("theme", "js", menuJsFileName), nil
 }
 
-func writeCSSFile(manifestDocsDir string, menuContent types.MenuContent) (string, error) {
-	var manifestCSSFilePath string
-	if len(menuContent.CSS) > 0 {
-		manifestCSSFilePath = filepath.Join("theme", "css", menuCSSFileName)
+func writeCSSFile(manifestDocsDir string, menuContent Content) (string, error) {
+	if len(menuContent.CSS) == 0 {
+		return "", nil
+	}
 
-		cssDir := filepath.Join(manifestDocsDir, "theme", "css")
-		_, errStat := os.Stat(cssDir)
-		if os.IsNotExist(errStat) {
-			errDir := os.MkdirAll(cssDir, os.ModePerm)
-			if errDir != nil {
-				return "", errors.Wrap(errDir, "error when create CSS folder")
-			}
-		}
-
-		err := ioutil.WriteFile(cssDir, menuContent.CSS, os.ModePerm)
-		if err != nil {
-			return "", errors.Wrap(err, "error when trying ro write CSS file")
+	cssDir := filepath.Join(manifestDocsDir, "theme", "css")
+	if _, errStat := os.Stat(cssDir); os.IsNotExist(errStat) {
+		errDir := os.MkdirAll(cssDir, os.ModePerm)
+		if errDir != nil {
+			return "", errors.Wrap(errDir, "error when create CSS folder")
 		}
 	}
-	return manifestCSSFilePath, nil
+
+	err := ioutil.WriteFile(cssDir, menuContent.CSS, os.ModePerm)
+	if err != nil {
+		return "", errors.Wrap(err, "error when trying ro write CSS file")
+	}
+
+	return filepath.Join("theme", "css", menuCSSFileName), nil
 }
 
 func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branches []string, menuTemplate string) error {

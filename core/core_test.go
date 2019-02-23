@@ -6,32 +6,27 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_getLatestReleaseTagName(t *testing.T) {
 	testCases := []struct {
-		desc            string
-		repo            types.RepoID
-		envVarLatestTag string
-		expected        string
+		desc                  string
+		owner, repositoryName string
+		envVarLatestTag       string
+		expected              string
 	}{
 		{
-			desc: "without env var override",
-			repo: types.RepoID{
-				Owner:          "containous",
-				RepositoryName: "structor",
-			},
-			expected: `v\d+.\d+(.\d+)?`,
+			desc:           "without env var override",
+			owner:          "containous",
+			repositoryName: "structor",
+			expected:       `v\d+.\d+(.\d+)?`,
 		},
 		{
-			desc: "with env var override",
-			repo: types.RepoID{
-				Owner:          "containous",
-				RepositoryName: "structor",
-			},
+			desc:            "with env var override",
+			owner:           "containous",
+			repositoryName:  "structor",
 			envVarLatestTag: "foo",
 			expected:        "foo",
 		},
@@ -44,7 +39,7 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = os.Unsetenv(envVarLatestTag) }()
 
-			tagName, err := getLatestReleaseTagName(test.repo)
+			tagName, err := getLatestReleaseTagName(test.owner, test.repositoryName)
 			require.NoError(t, err)
 
 			assert.Regexp(t, test.expected, tagName)

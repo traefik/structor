@@ -1,5 +1,8 @@
 package types
 
+// NoOption empty struct.
+type NoOption struct{}
+
 // Configuration task configuration.
 type Configuration struct {
 	Owner                  string     `short:"o" description:"Repository owner. [required]"`
@@ -32,12 +35,6 @@ func (m *MenuFiles) HasCSSFile() bool {
 	return m != nil && len(m.CSSFile) > 0 || len(m.CSSURL) > 0
 }
 
-// MenuContent Content of menu files
-type MenuContent struct {
-	Js  []byte
-	CSS []byte
-}
-
 // VersionsInformation versions information
 type VersionsInformation struct {
 	Current      string
@@ -45,12 +42,3 @@ type VersionsInformation struct {
 	Experimental string
 	CurrentPath  string
 }
-
-// RepoID Repository identifier.
-type RepoID struct {
-	Owner          string
-	RepositoryName string
-}
-
-// NoOption empty struct.
-type NoOption struct{}
