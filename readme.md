@@ -77,6 +77,6 @@ sudo ./structor -o containous -r traefik \
 --exp-branch=master --debug
 ```
 
-## What's Messor Structor mean? 
+## What does Messor Structor mean? 
 
 ![Messor Structor](http://www.antwiki.org/wiki/images/8/8d/Messor_structor_antweb1008070_h_1_high.jpg)
