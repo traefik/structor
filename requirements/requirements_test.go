@@ -2,10 +2,14 @@ package requirements
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/containous/structor/file"
+	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -66,6 +70,139 @@ func TestCheck(t *testing.T) {
 	}
 }
 
+func TestGetContent(t *testing.T) {
+	serverURL, teardown := serveFixturesContent()
+	defer teardown()
+
+	testCases := []struct {
+		desc             string
+		requirementsPath string
+		expected         string
+	}{
+		{
+			desc:             "empty path",
+			requirementsPath: "",
+			expected:         "",
+		},
+		{
+			desc:             "local file",
+			requirementsPath: filepath.Join(".", "fixtures", "requirements.txt"),
+			expected:         string(mustReadFile(filepath.Join(".", "fixtures", "requirements.txt"))),
+		},
+		{
+			desc:             "remote file",
+			requirementsPath: serverURL + "/requirements.txt",
+			expected:         string(mustReadFile(filepath.Join(".", "fixtures", "requirements.txt"))),
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+
+			content, err := GetContent(test.requirementsPath)
+			require.NoError(t, err)
+
+			assert.Equal(t, test.expected, string(content))
+		})
+	}
+}
+
+func TestGetContent_Fail(t *testing.T) {
+	serverURL, teardown := serveFixturesContent()
+	defer teardown()
+
+	testCases := []struct {
+		desc             string
+		requirementsPath string
+	}{
+		{
+			desc:             "local file",
+			requirementsPath: filepath.Join(".", "fixtures", "missing.txt"),
+		},
+		{
+			desc:             "remote file",
+			requirementsPath: serverURL + "/missing.txt",
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+
+			_, err := GetContent(test.requirementsPath)
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestBuild(t *testing.T) {
+	testCases := []struct {
+		desc          string
+		customContent string
+		expected      string
+	}{
+		{
+			desc: "no custom content",
+			expected: `mkdocs==0.17.5
+pymdown-extensions==4.12
+mkdocs-bootswatch==0.5.0
+mkdocs-material==2.9.4
+`,
+		},
+		{
+			desc: "merge",
+			customContent: `
+mkdocs==0.17.6
+`,
+			expected: `mkdocs==0.17.6
+mkdocs-bootswatch==0.5.0
+mkdocs-material==2.9.4
+pymdown-extensions==4.12
+`,
+		},
+		{
+			desc: "add",
+			customContent: `
+foo=0.17.6
+`,
+			expected: `foo=0.17.6
+mkdocs==0.17.5
+mkdocs-bootswatch==0.5.0
+mkdocs-material==2.9.4
+pymdown-extensions==4.12
+`,
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			dir, err := ioutil.TempDir("", "structor-test")
+			require.NoError(t, err)
+
+			requirementPath := filepath.Join(dir, filename)
+			err = file.Copy(filepath.Join(".", "fixtures", filename), requirementPath)
+			require.NoError(t, err)
+
+			versionsInfo := types.VersionsInformation{
+				CurrentPath: dir,
+			}
+
+			err = Build(versionsInfo, []byte(test.customContent))
+			require.NoError(t, err)
+
+			require.FileExists(t, requirementPath)
+			content, err := ioutil.ReadFile(requirementPath)
+			require.NoError(t, err)
+
+			assert.Equal(t, test.expected, string(content))
+		})
+	}
+}
+
 func Test_parse(t *testing.T) {
 	reqts := `
 pkg1<5
@@ -88,4 +225,21 @@ pkg5<1.3
 	}
 
 	assert.Equal(t, expected, content)
+}
+
+func mustReadFile(path string) []byte {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return bytes
+}
+
+func serveFixturesContent() (string, func()) {
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.Dir("./fixtures")))
+
+	server := httptest.NewServer(mux)
+
+	return server.URL, server.Close
 }

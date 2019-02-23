@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/containous/structor/file"
@@ -23,61 +24,71 @@ func Check(docRoot string) error {
 }
 
 // GetContent Gets the content of the "requirements.txt".
-func GetContent(requirementsURL string) ([]byte, error) {
-	var content []byte
+func GetContent(requirementsPath string) ([]byte, error) {
+	if len(requirementsPath) == 0 {
+		return nil, nil
+	}
 
-	if len(requirementsURL) > 0 {
-		_, err := os.Stat(requirementsURL)
+	if _, errStat := os.Stat(requirementsPath); errStat == nil {
+		content, err := ioutil.ReadFile(requirementsPath)
 		if err != nil {
-			content, err = file.Download(requirementsURL)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to download Requirements file")
-			}
-		} else {
-			content, err = ioutil.ReadFile(requirementsURL)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to read Requirements file")
-			}
+			return nil, errors.Wrap(err, "failed to read Requirements file")
 		}
+		return content, nil
+	}
+
+	content, err := file.Download(requirementsPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to download Requirements file")
 	}
 	return content, nil
+
 }
 
 // Build Builds a "requirements.txt" file.
 func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
-	if len(customContent) > 0 {
-		requirementsPath := filepath.Join(versionsInfo.CurrentPath, filename)
-
-		baseContent, err := ioutil.ReadFile(requirementsPath)
-		if err != nil {
-			return err
-		}
-
-		reqBase, err := parse(baseContent)
-		if err != nil {
-			return err
-		}
-
-		reqCustom, err := parse(customContent)
-		if err != nil {
-			return err
-		}
-
-		// merge
-		for key, value := range reqCustom {
-			reqBase[key] = value
-		}
-
-		f, err := os.Create(requirementsPath)
-		if err != nil {
-			return err
-		}
-		defer safeClose(f.Close)
-
-		for key, value := range reqBase {
-			fmt.Fprintf(f, "%s%s\n", key, value)
-		}
+	if len(customContent) == 0 {
+		return nil
 	}
+
+	requirementsPath := filepath.Join(versionsInfo.CurrentPath, filename)
+
+	baseContent, err := ioutil.ReadFile(requirementsPath)
+	if err != nil {
+		return errors.Wrapf(err, "unable to read %s", requirementsPath)
+	}
+
+	reqBase, err := parse(baseContent)
+	if err != nil {
+		return err
+	}
+
+	reqCustom, err := parse(customContent)
+	if err != nil {
+		return err
+	}
+
+	// merge
+	for key, value := range reqCustom {
+		reqBase[key] = value
+	}
+
+	f, err := os.Create(requirementsPath)
+	if err != nil {
+		return err
+	}
+	defer safeClose(f.Close)
+
+	var sortedKeys []string
+	for key := range reqBase {
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Strings(sortedKeys)
+
+	for _, key := range sortedKeys {
+		fmt.Fprintf(f, "%s%s\n", key, reqBase[key])
+	}
+
 	return nil
 }
 
