@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/containous/structor/file"
 	"github.com/containous/structor/manifest"
 	"github.com/containous/structor/types"
@@ -153,7 +154,7 @@ func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types
 }
 
 func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branches []string, menuTemplate string) error {
-	temp := template.New("menu-js")
+	temp := template.New("menu-js").Funcs(sprig.TxtFuncMap())
 
 	_, err := temp.Parse(menuTemplate)
 	if err != nil {

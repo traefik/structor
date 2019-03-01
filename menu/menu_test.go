@@ -294,6 +294,59 @@ var foo = [
 	assert.Equal(t, expected, string(content))
 }
 
+func Test_buildJSFile_sprig(t *testing.T) {
+	dir, _ := ioutil.TempDir("", "structor-test")
+	defer func() { _ = os.RemoveAll(dir) }()
+
+	branches := []string{"origin/v1.4", "origin/master", "v1.4.6", "origin/v1.3"}
+
+	versionsInfo := types.VersionsInformation{
+		Current:      "v1.4",
+		Latest:       "v1.4.6",
+		Experimental: "master",
+	}
+
+	jsTemplate := `
+{{- $latest := semver "0.0" }}
+{{- range $version := .Versions }}
+	{{- if contains "Latest" $version.Text }}
+		{{- $latest = $version.Text | trimSuffix " Latest" | trimPrefix "v" | semver }}
+	{{- end}}
+{{- end}}
+
+var foo = [
+{{- range $version := .Versions }}
+	{{- if eq $version.Text "Experimental" }}
+	{url: "http://localhost:8080/{{ $version.Path }}", text: "v{{ $latest.Major }}.{{ int64 1 | add $latest.Minor }} (unreleased)", selected: {{ $version.Selected }} },
+	{{- else}}
+	{url: "http://localhost:8080/{{ $version.Path }}", text: "{{ $version.Text }}", selected: {{ $version.Selected }} },
+	{{- end}}
+{{- end}}
+];
+`
+
+	jsFile := filepath.Join(dir, "menu.js")
+
+	err := buildJSFile(jsFile, versionsInfo, branches, jsTemplate)
+	require.NoError(t, err)
+
+	assert.FileExists(t, jsFile)
+
+	content, err := ioutil.ReadFile(jsFile)
+	require.NoError(t, err)
+
+	expected := `
+
+var foo = [
+	{url: "http://localhost:8080/", text: "v1.4 Latest", selected: true },
+	{url: "http://localhost:8080/master", text: "v1.5 (unreleased)", selected: false },
+	{url: "http://localhost:8080/v1.3", text: "v1.3", selected: false },
+];
+`
+
+	assert.Equal(t, expected, string(content))
+}
+
 func mustReadFile(path string) []byte {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
