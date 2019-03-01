@@ -39,6 +39,8 @@ Flags:
 
 The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest tag name.
 
+The [sprig](http://masterminds.github.io/sprig/) functions for Go templates can be used inside the JS template file.
+
 ## Download / CI Integration
 
 ```bash
