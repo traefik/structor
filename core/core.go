@@ -77,9 +77,9 @@ func process(workDir string, config *types.Configuration) error {
 
 	for _, branchRef := range branches {
 		versionName := strings.Replace(branchRef, baseRemote, "", 1)
-		versionCurrentPath := filepath.Join(workDir, versionName)
-
 		log.Printf("Generating doc for version %s", versionName)
+
+		versionCurrentPath := filepath.Join(workDir, versionName)
 
 		err := repository.CreateWorkTree(versionCurrentPath, branchRef, config.Debug)
 		if err != nil {
@@ -102,6 +102,7 @@ func process(workDir string, config *types.Configuration) error {
 			Experimental: config.ExperimentalBranchName,
 			CurrentPath:  versionDocsRoot,
 		}
+
 		fallbackDockerfile.Path = filepath.Join(versionsInfo.CurrentPath, fallbackDockerfile.Name)
 
 		err = buildDocumentation(branches, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
@@ -145,9 +146,9 @@ func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir
 		return err
 	}
 
-	outputDir := siteDir
-	if !strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
-		outputDir = filepath.Join(siteDir, versionsInfo.Current)
+	outputDir := filepath.Join(siteDir, versionsInfo.Current)
+	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+		outputDir = siteDir
 	}
 
 	return file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
@@ -232,27 +233,25 @@ func createSiteDirectory() (string, error) {
 }
 
 func createDirectory(directoryPath string) error {
-	if _, err := os.Stat(directoryPath); !os.IsNotExist(err) {
-		err = os.RemoveAll(directoryPath)
-		if err != nil {
+	_, err := os.Stat(directoryPath)
+	switch {
+	case err == nil:
+		if err = os.RemoveAll(directoryPath); err != nil {
 			return err
 		}
+	case !os.IsNotExist(err):
+		return err
 	}
 
 	return os.MkdirAll(directoryPath, os.ModePerm)
 }
 
 func cleanAll(workDir string, debug bool) error {
-	err := os.RemoveAll(workDir)
-	if err != nil {
-		return err
-	}
-
 	output, err := git.Worktree(worktree.Prune, git.Debugger(debug))
 	if err != nil {
 		log.Println(output)
 		return err
 	}
 
-	return nil
+	return os.RemoveAll(workDir)
 }

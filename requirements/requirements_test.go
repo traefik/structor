@@ -16,7 +16,7 @@ import (
 
 func TestCheck(t *testing.T) {
 	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
-	defer func() { _ = os.Remove(workingDirBasePath) }()
+	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -182,6 +182,7 @@ pymdown-extensions==4.12
 
 			dir, err := ioutil.TempDir("", "structor-test")
 			require.NoError(t, err)
+			defer func() { _ = os.RemoveAll(dir) }()
 
 			requirementPath := filepath.Join(dir, filename)
 			err = file.Copy(filepath.Join(".", "fixtures", filename), requirementPath)

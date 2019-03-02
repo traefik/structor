@@ -22,6 +22,7 @@ type DockerfileInformation struct {
 	Path      string
 	Content   []byte
 	ImageName string
+	dryRun    bool
 }
 
 // BuildImage Builds a Docker image.
@@ -34,7 +35,7 @@ func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformatio
 	dockerImageFullName := buildImageFullName(d.ImageName, versionsInfo.Current)
 
 	// Build image
-	output, err := Exec(debug, "build", "--no-cache="+strconv.FormatBool(noCache), "-t", dockerImageFullName, "-f", d.Path, versionsInfo.CurrentPath+"/")
+	output, err := execCmd(d.dryRun, debug, "build", "--no-cache="+strconv.FormatBool(noCache), "-t", dockerImageFullName, "-f", d.Path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
 		return "", err
@@ -69,7 +70,7 @@ func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInforma
 	if workingDirectory == "" {
 		return nil, errors.New("workingDirectory is undefined")
 	}
-	if _, err := os.Stat(workingDirectory); os.IsNotExist(err) {
+	if _, err := os.Stat(workingDirectory); err != nil {
 		return nil, err
 	}
 
@@ -79,22 +80,23 @@ func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInforma
 	}
 
 	for _, searchPath := range searchPaths {
-		if _, err := os.Stat(searchPath); !os.IsNotExist(err) {
-			log.Printf("Found Dockerfile for building documentation in %s.", searchPath)
-
-			var dockerFileContent []byte
-			dockerFileContent, err = ioutil.ReadFile(searchPath)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to get dockerfile file content.")
-			}
-
-			return &DockerfileInformation{
-				Name:      dockerfileName,
-				Path:      searchPath,
-				ImageName: fallbackDockerfile.ImageName,
-				Content:   dockerFileContent,
-			}, nil
+		if _, err := os.Stat(searchPath); err != nil {
+			continue
 		}
+
+		log.Printf("Found Dockerfile for building documentation in %s.", searchPath)
+
+		dockerFileContent, err := ioutil.ReadFile(searchPath)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get dockerfile file content.")
+		}
+
+		return &DockerfileInformation{
+			Name:      dockerfileName,
+			Path:      searchPath,
+			ImageName: fallbackDockerfile.ImageName,
+			Content:   dockerFileContent,
+		}, nil
 	}
 
 	log.Printf("Using fallback Dockerfile, written into %s", fallbackDockerfile.Path)
@@ -103,10 +105,18 @@ func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInforma
 
 // Exec Executes a docker command.
 func Exec(debug bool, args ...string) (string, error) {
+	return execCmd(false, debug, args...)
+}
+
+func execCmd(dryRun bool, debug bool, args ...string) (string, error) {
 	cmdName := "docker"
 
-	if debug {
+	if debug || dryRun {
 		log.Println(cmdName, strings.Join(args, " "))
+	}
+
+	if dryRun {
+		return "", nil
 	}
 
 	output, err := exec.Command(cmdName, args...).CombinedOutput()

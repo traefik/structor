@@ -49,7 +49,7 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 
 func Test_getDocumentationRoot(t *testing.T) {
 	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
-	defer func() { _ = os.Remove(workingDirBasePath) }()
+	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -116,6 +116,39 @@ func Test_getDocumentationRoot(t *testing.T) {
 				require.NoError(t, resultingError)
 				assert.Equal(t, test.expectedDocsRoot, resultingDocsRoot)
 			}
+		})
+	}
+}
+
+func Test_createDirectory(t *testing.T) {
+	dir, err := ioutil.TempDir("", "structor-test")
+	require.NoError(t, err)
+	defer func() { _ = os.RemoveAll(dir) }()
+
+	err = os.MkdirAll(filepath.Join(dir, "existing"), os.ModePerm)
+	require.NoError(t, err)
+
+	testCases := []struct {
+		desc    string
+		dirPath string
+	}{
+		{
+			desc:    "when a directory doesn't already exists",
+			dirPath: filepath.Join(dir, "here"),
+		},
+		{
+			desc:    "when a directory already exists",
+			dirPath: filepath.Join(dir, "existing"),
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			err := createDirectory(test.dirPath)
+			require.NoError(t, err)
+
+			assert.DirExists(t, test.dirPath)
 		})
 	}
 }

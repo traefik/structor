@@ -3,6 +3,7 @@ package menu
 import (
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -60,10 +61,8 @@ func Test_editManifest(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-			t.Parallel()
-
-			testManifest, err := setupTestManifest(test.source)
-			require.NoError(t, err)
+			testManifest, tearDown := setupTestManifest(test.source)
+			defer tearDown()
 
 			manif, err := manifest.Read(testManifest)
 			require.NoError(t, err)
@@ -78,26 +77,29 @@ func Test_editManifest(t *testing.T) {
 	}
 }
 
-func setupTestManifest(src string) (string, error) {
+func setupTestManifest(src string) (string, func()) {
 	srcManifest, err := filepath.Abs(src)
 	if err != nil {
-		return "", err
+		return "", func() {}
 	}
 
-	dir, err := ioutil.TempDir("", "structor")
+	dir, err := ioutil.TempDir("", "structor-test")
 	if err != nil {
-		return "", err
+		return "", func() {}
 	}
-	defer func() { _ = os.Remove(dir) }()
 
 	testManifest := filepath.Join(dir, "mkdocs.yml")
 
 	err = fileCopy(srcManifest, testManifest)
 	if err != nil {
-		return "", err
+		return "", func() {}
 	}
 
-	return testManifest, nil
+	return testManifest, func() {
+		if err := os.RemoveAll(dir); err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 func assertSameContent(t *testing.T, expectedFilePath, actualFilePath string) {

@@ -113,8 +113,7 @@ func parse(content []byte) (map[string]string, error) {
 }
 
 func safeClose(fn func() error) {
-	err := fn()
-	if err != nil {
+	if err := fn(); err != nil {
 		log.Println(err)
 	}
 }

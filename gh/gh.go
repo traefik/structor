@@ -22,14 +22,12 @@ func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 
 	resp, err := client.Get(baseURL + "/latest")
 	if err != nil {
-		displayResponseBody(resp)
+		logResponseBody(resp)
 		return "", errors.Wrap(err, "failed to get latest release tag name")
 	}
 
-	log.Println("Status:", resp.Status)
-
 	if resp.StatusCode >= http.StatusBadRequest {
-		displayResponseBody(resp)
+		logResponseBody(resp)
 		return "", errors.Errorf("failed to get latest release tag name on GitHub (%q), status: %s", baseURL+"/latest", resp.Status)
 	}
 
@@ -41,7 +39,7 @@ func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	return strings.TrimPrefix(location.String(), baseURL+"/tag/"), nil
 }
 
-func displayResponseBody(resp *http.Response) {
+func logResponseBody(resp *http.Response) {
 	if resp.Body == nil {
 		log.Println("The response body is empty")
 		return
@@ -59,8 +57,7 @@ func displayResponseBody(resp *http.Response) {
 }
 
 func safeClose(fn func() error) {
-	err := fn()
-	if err != nil {
+	if err := fn(); err != nil {
 		log.Println(err)
 	}
 }

@@ -2,13 +2,42 @@ package docker
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestDockerfileInformation_BuildImage(t *testing.T) {
+	dir, err := ioutil.TempDir("", "structor-test")
+	require.NoError(t, err)
+	defer func() { _ = os.RemoveAll(dir) }()
+
+	versionsInfo := types.VersionsInformation{
+		Current:      "v1.1",
+		Latest:       "v1.1",
+		Experimental: "master",
+		CurrentPath:  "/here",
+	}
+
+	info := &DockerfileInformation{
+		Name:      "1234.Dockerfile",
+		Path:      filepath.Join(dir, "sample.Dockerfile"),
+		Content:   mustReadFile("./fixtures/docs.Dockerfile"),
+		ImageName: "project",
+		dryRun:    true,
+	}
+
+	image, err := info.BuildImage(versionsInfo, false, false)
+	require.NoError(t, err)
+
+	assert.Equal(t, "project:v1.1", image)
+}
 
 func Test_buildImageFullName(t *testing.T) {
 	testCases := []struct {
@@ -74,7 +103,7 @@ func Test_buildImageFullName(t *testing.T) {
 
 func TestGetDockerfile(t *testing.T) {
 	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
-	defer func() { _ = os.Remove(workingDirBasePath) }()
+	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
 	fallbackDockerfile := DockerfileInformation{
@@ -178,4 +207,37 @@ func TestGetDockerfile(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetDockerfileFallback(t *testing.T) {
+	serverURL, teardown := serveFixturesContent()
+	defer teardown()
+
+	dockerFileURL := serverURL + "/docs.Dockerfile"
+	imageName := "test"
+
+	info, err := GetDockerfileFallback(dockerFileURL, imageName)
+	require.NoError(t, err)
+
+	assert.Regexp(t, `\d{12,}.Dockerfile`, info.Name)
+	assert.Empty(t, info.Path)
+	assert.Equal(t, mustReadFile("./fixtures/docs.Dockerfile"), info.Content)
+	assert.Equal(t, "test", info.ImageName)
+}
+
+func mustReadFile(path string) []byte {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return bytes
+}
+
+func serveFixturesContent() (string, func()) {
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.Dir("./fixtures/")))
+
+	server := httptest.NewServer(mux)
+
+	return server.URL, server.Close
 }
