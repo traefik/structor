@@ -119,81 +119,6 @@ func process(workDir string, config *types.Configuration) error {
 	return nil
 }
 
-// getDocumentationRoot returns the path to the documentation's root by searching for "${menu.ManifestFileName}".
-// Search is done from the docsRootSearchPath, relatively to the provided repository path.
-// An additional sanity checking is done on the file named "requirements.txt" which must be located in the same directory.
-func getDocumentationRoot(repositoryRoot string) (string, error) {
-	var docsRootSearchPaths = []string{"/", "docs/"}
-
-	for _, docsRootSearchPath := range docsRootSearchPaths {
-		candidateDocsRootPath := filepath.Join(repositoryRoot, docsRootSearchPath)
-
-		if _, err := os.Stat(filepath.Join(candidateDocsRootPath, manifest.FileName)); !os.IsNotExist(err) {
-			log.Printf("Found %s for building documentation in %s.", manifest.FileName, candidateDocsRootPath)
-			return candidateDocsRootPath, nil
-		}
-	}
-
-	return "", errors.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
-}
-
-// copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.
-// If the current version (branch) name is related to the latest tag, then it's copied at the root of the output directory.
-// Else it is copied under a directory named after the version, at the root of the output directory.
-func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir string) error {
-	currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
-	if err != nil {
-		return err
-	}
-
-	outputDir := filepath.Join(siteDir, versionsInfo.Current)
-	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
-		// Create a permalink for the latest version
-		err := file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
-		if err != nil {
-			return err
-		}
-
-		outputDir = siteDir
-	}
-
-	return file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
-}
-
-func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
-	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent menu.Content, requirementsContent []byte,
-	config *types.Configuration) error {
-
-	err := menu.Build(versionsInfo, branches, menuTemplateContent)
-	if err != nil {
-		return err
-	}
-
-	err = requirements.Build(versionsInfo, requirementsContent)
-	if err != nil {
-		return err
-	}
-
-	baseDockerfile, err := docker.GetDockerfile(versionsInfo.CurrentPath, fallbackDockerfile, config.DockerfileName)
-	if err != nil {
-		return err
-	}
-
-	dockerImageFullName, err := baseDockerfile.BuildImage(versionsInfo, config.NoCache, config.Debug)
-	if err != nil {
-		return err
-	}
-
-	// Run image
-	output, err := docker.Exec(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerImageFullName, "mkdocs", "build")
-	if err != nil {
-		log.Println(output)
-		return err
-	}
-
-	return nil
-}
-
 func getLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	latest := os.Getenv(envVarLatestTag)
 	if len(latest) > 0 {
@@ -250,6 +175,81 @@ func createDirectory(directoryPath string) error {
 	}
 
 	return os.MkdirAll(directoryPath, os.ModePerm)
+}
+
+// getDocumentationRoot returns the path to the documentation's root by searching for "${menu.ManifestFileName}".
+// Search is done from the docsRootSearchPath, relatively to the provided repository path.
+// An additional sanity checking is done on the file named "requirements.txt" which must be located in the same directory.
+func getDocumentationRoot(repositoryRoot string) (string, error) {
+	var docsRootSearchPaths = []string{"/", "docs/"}
+
+	for _, docsRootSearchPath := range docsRootSearchPaths {
+		candidateDocsRootPath := filepath.Join(repositoryRoot, docsRootSearchPath)
+
+		if _, err := os.Stat(filepath.Join(candidateDocsRootPath, manifest.FileName)); !os.IsNotExist(err) {
+			log.Printf("Found %s for building documentation in %s.", manifest.FileName, candidateDocsRootPath)
+			return candidateDocsRootPath, nil
+		}
+	}
+
+	return "", errors.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
+}
+
+func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
+	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent menu.Content, requirementsContent []byte,
+	config *types.Configuration) error {
+
+	err := menu.Build(versionsInfo, branches, menuTemplateContent)
+	if err != nil {
+		return err
+	}
+
+	err = requirements.Build(versionsInfo, requirementsContent)
+	if err != nil {
+		return err
+	}
+
+	baseDockerfile, err := docker.GetDockerfile(versionsInfo.CurrentPath, fallbackDockerfile, config.DockerfileName)
+	if err != nil {
+		return err
+	}
+
+	dockerImageFullName, err := baseDockerfile.BuildImage(versionsInfo, config.NoCache, config.Debug)
+	if err != nil {
+		return err
+	}
+
+	// Run image
+	output, err := docker.Exec(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerImageFullName, "mkdocs", "build")
+	if err != nil {
+		log.Println(output)
+		return err
+	}
+
+	return nil
+}
+
+// copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.
+// If the current version (branch) name is related to the latest tag, then it's copied at the root of the output directory.
+// Else it is copied under a directory named after the version, at the root of the output directory.
+func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir string) error {
+	currentSiteDir, err := getDocumentationRoot(versionsInfo.CurrentPath)
+	if err != nil {
+		return err
+	}
+
+	outputDir := filepath.Join(siteDir, versionsInfo.Current)
+	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+		// Create a permalink for the latest version
+		err := file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
+		if err != nil {
+			return err
+		}
+
+		outputDir = siteDir
+	}
+
+	return file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 }
 
 func cleanAll(workDir string, debug bool) error {
