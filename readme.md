@@ -48,7 +48,7 @@ The [sprig](http://masterminds.github.io/sprig/) functions for Go templates can 
 ## Download / CI Integration
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/containous/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.4.3
+curl -sfL https://raw.githubusercontent.com/containous/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.7.0
 ```
 
 <!--
