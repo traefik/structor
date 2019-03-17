@@ -41,14 +41,17 @@ func Write(manifestFilePath string, manif map[string]interface{}) error {
 
 // GetDocsDir returns the path to the directory pointed by "docs_dir" in the manifest file.
 // If docs_dir is not set, then the directory containing the manifest is returned.
-func GetDocsDir(manif map[string]interface{}, manifestFilePath string) (string, error) {
-	manifestDir := filepath.Dir(manifestFilePath)
+func GetDocsDir(manif map[string]interface{}, manifestFilePath string) string {
+	return filepath.Join(filepath.Dir(manifestFilePath), getDocsDirAttribute(manif))
+}
 
+func getDocsDirAttribute(manif map[string]interface{}) string {
 	if value, ok := manif["docs_dir"]; ok {
-		return filepath.Join(manifestDir, value.(string)), nil
+		return value.(string)
 	}
+
 	// https://www.mkdocs.org/user-guide/configuration/#docs_dir
-	return filepath.Join(manifestDir, "docs"), nil
+	return "docs"
 }
 
 // AppendExtraJs Appends a file path to the "extra_javascript" in the manifest file.

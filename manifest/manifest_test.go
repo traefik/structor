@@ -145,8 +145,7 @@ func TestGetDocsDir(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			docDir, err := GetDocsDir(test.content, test.manifestFilePath)
-			require.NoError(t, err)
+			docDir := GetDocsDir(test.content, test.manifestFilePath)
 
 			assert.Equal(t, test.expected, docDir)
 		})
