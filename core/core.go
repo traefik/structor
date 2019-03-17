@@ -199,7 +199,12 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent menu.Content, requirementsContent []byte,
 	config *types.Configuration) error {
 
-	err := menu.Build(versionsInfo, branches, menuTemplateContent)
+	err := addEditionURI(config, versionsInfo)
+	if err != nil {
+		return err
+	}
+
+	err = menu.Build(versionsInfo, branches, menuTemplateContent)
 	if err != nil {
 		return err
 	}
@@ -227,6 +232,23 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 	}
 
 	return nil
+}
+
+func addEditionURI(config *types.Configuration, versionsInfo types.VersionsInformation) error {
+	if !config.ForceEditionURI {
+		return nil
+	}
+
+	manifestFile := filepath.Join(versionsInfo.CurrentPath, manifest.FileName)
+
+	manif, err := manifest.Read(manifestFile)
+	if err != nil {
+		return err
+	}
+
+	manifest.AddEditionURI(manif, versionsInfo.Current, true)
+
+	return manifest.Write(manifestFile, manif)
 }
 
 // copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.

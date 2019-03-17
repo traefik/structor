@@ -281,3 +281,71 @@ func TestAppendExtraCSS(t *testing.T) {
 		})
 	}
 }
+
+func TestAddEditionURI(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		manif    map[string]interface{}
+		version  string
+		override bool
+		expected map[string]interface{}
+	}{
+		{
+			desc:    "no version",
+			manif:   map[string]interface{}{},
+			version: "",
+			expected: map[string]interface{}{
+				"edit_uri": "edit/master/docs/",
+			},
+		},
+		{
+			desc: "no version, no override",
+			manif: map[string]interface{}{
+				"edit_uri": "edit/v666/docs/"},
+			version: "",
+			expected: map[string]interface{}{
+				"edit_uri": "edit/v666/docs/",
+			},
+		},
+		{
+			desc: "no version, override",
+			manif: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/"},
+			version:  "",
+			override: true,
+			expected: map[string]interface{}{
+				"edit_uri": "edit/master/docs/",
+			},
+		},
+		{
+			desc: "version, no override",
+			manif: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/"},
+			version: "v2",
+			expected: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/",
+			},
+		},
+		{
+			desc: "version, override",
+			manif: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/"},
+			version:  "v2",
+			override: true,
+			expected: map[string]interface{}{
+				"edit_uri": "edit/v2/docs/",
+			},
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			AddEditionURI(test.manif, test.version, test.override)
+
+			assert.Equal(t, test.expected, test.manif)
+		})
+	}
+}

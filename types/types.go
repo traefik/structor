@@ -15,6 +15,7 @@ type Configuration struct {
 	Menu                   *MenuFiles `long:"menu" description:"Menu templates files."`
 	RequirementsURL        string     `long:"rqts-url" description:"Use this requirements.txt when --dockerfile-name is not found. Can be a file path."`
 	NoCache                bool       `long:"no-cache" description:"Set to 'true' to disable the Docker build cache."`
+	ForceEditionURI        bool       `long:"force-edit-url" description:"Add a dedicated edition URL for each version."`
 }
 
 // MenuFiles menu template files references
