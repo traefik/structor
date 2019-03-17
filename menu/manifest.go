@@ -6,10 +6,10 @@ import (
 
 func editManifest(manif map[string]interface{}, versionJsFile string, versionCSSFile string) {
 	// Append menu JS file
-	manifest.AppendExtraJs(versionJsFile, manif)
+	manifest.AppendExtraJs(manif, versionJsFile)
 
 	// Append menu CSS file
-	manifest.AppendExtraCSS(versionCSSFile, manif)
+	manifest.AppendExtraCSS(manif, versionCSSFile)
 
 	// reset site URL
 	manif["site_url"] = ""

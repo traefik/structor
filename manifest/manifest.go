@@ -41,7 +41,7 @@ func Write(manifestFilePath string, manif map[string]interface{}) error {
 
 // GetDocsDir returns the path to the directory pointed by "docs_dir" in the manifest file.
 // If docs_dir is not set, then the directory containing the manifest is returned.
-func GetDocsDir(manifestFilePath string, manif map[string]interface{}) (string, error) {
+func GetDocsDir(manif map[string]interface{}, manifestFilePath string) (string, error) {
 	manifestDir := filepath.Dir(manifestFilePath)
 
 	if value, ok := manif["docs_dir"]; ok {
@@ -52,7 +52,7 @@ func GetDocsDir(manifestFilePath string, manif map[string]interface{}) (string, 
 }
 
 // AppendExtraJs Appends a file path to the "extra_javascript" in the manifest file.
-func AppendExtraJs(jsFile string, manif map[string]interface{}) {
+func AppendExtraJs(manif map[string]interface{}, jsFile string) {
 	if len(jsFile) > 0 {
 		var extraJs []interface{}
 		if val, ok := manif["extra_javascript"]; ok {
@@ -64,7 +64,7 @@ func AppendExtraJs(jsFile string, manif map[string]interface{}) {
 }
 
 // AppendExtraCSS Appends a file path to the "extra_css" in the manifest file.
-func AppendExtraCSS(cssFile string, manif map[string]interface{}) {
+func AppendExtraCSS(manif map[string]interface{}, cssFile string) {
 	if len(cssFile) > 0 {
 		var extraCSS []interface{}
 		if val, ok := manif["extra_css"]; ok {

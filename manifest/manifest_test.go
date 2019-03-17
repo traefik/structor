@@ -145,7 +145,7 @@ func TestGetDocsDir(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			docDir, err := GetDocsDir(test.manifestFilePath, test.content)
+			docDir, err := GetDocsDir(test.content, test.manifestFilePath)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.expected, docDir)
@@ -211,7 +211,7 @@ func TestAppendExtraJs(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			AppendExtraJs(test.jsFile, test.content)
+			AppendExtraJs(test.content, test.jsFile)
 
 			assert.Equal(t, test.expected, test.content)
 		})
@@ -276,7 +276,7 @@ func TestAppendExtraCSS(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			AppendExtraCSS(test.cssFile, test.content)
+			AppendExtraCSS(test.content, test.cssFile)
 
 			assert.Equal(t, test.expected, test.content)
 		})

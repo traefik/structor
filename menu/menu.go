@@ -67,7 +67,7 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 		return err
 	}
 
-	manifestDocsDir, err := manifest.GetDocsDir(manifestFile, manif)
+	manifestDocsDir, err := manifest.GetDocsDir(manif, manifestFile)
 	if err != nil {
 		return err
 	}
