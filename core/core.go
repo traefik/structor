@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -192,7 +193,7 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 		}
 	}
 
-	return "", errors.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ","))
+	return "", errors.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ", "))
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
@@ -246,9 +247,20 @@ func addEditionURI(config *types.Configuration, versionsInfo types.VersionsInfor
 		return err
 	}
 
-	manifest.AddEditionURI(manif, versionsInfo.Current, true)
+	docsDirSuffix := getDocsDirSuffix(versionsInfo)
+
+	manifest.AddEditionURI(manif, versionsInfo.Current, docsDirSuffix, true)
 
 	return manifest.Write(manifestFile, manif)
+}
+
+func getDocsDirSuffix(versionsInfo types.VersionsInformation) string {
+	parts := strings.SplitN(versionsInfo.CurrentPath, string(filepath.Separator)+versionsInfo.Current+string(filepath.Separator), 2)
+	if len(parts) <= 1 {
+		return ""
+	}
+
+	return path.Clean(strings.ReplaceAll(parts[1], string(filepath.Separator), "/"))
 }
 
 // copyVersionSiteToOutputSite adds the generated documentation for the version described in ${versionsInfo} to the output directory.

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -52,40 +53,48 @@ func Test_getDocumentationRoot(t *testing.T) {
 	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
+	type expected struct {
+		docsRoot string
+		error    string
+	}
+
 	testCases := []struct {
-		desc                 string
-		workingDirectory     string
-		repositoryFiles      []string
-		expectedDocsRoot     string
-		expectedErrorMessage string
+		desc             string
+		workingDirectory string
+		repositoryFiles  []string
+		expected         expected
 	}{
 		{
-			desc:                 "working case with mkdocs in the root of the repository",
-			workingDirectory:     filepath.Join(workingDirBasePath, "mkdocs-in-root"),
-			repositoryFiles:      []string{"mkdocs.yml", "requirements.txt", "docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
-			expectedDocsRoot:     filepath.Join(workingDirBasePath, "mkdocs-in-root"),
-			expectedErrorMessage: "",
+			desc:             "working case with mkdocs in the root of the repository",
+			workingDirectory: filepath.Join(workingDirBasePath, "mkdocs-in-root"),
+			repositoryFiles:  []string{"mkdocs.yml", "requirements.txt", "docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expected: expected{
+				docsRoot: filepath.Join(workingDirBasePath, "mkdocs-in-root"),
+			},
 		},
 		{
-			desc:                 "working case with mkdocs in ./docs",
-			workingDirectory:     filepath.Join(workingDirBasePath, "mkdocs-in-docs"),
-			repositoryFiles:      []string{"docs/mkdocs.yml", "docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
-			expectedDocsRoot:     filepath.Join(workingDirBasePath, "mkdocs-in-docs", "docs"),
-			expectedErrorMessage: "",
+			desc:             "working case with mkdocs in ./docs",
+			workingDirectory: filepath.Join(workingDirBasePath, "mkdocs-in-docs"),
+			repositoryFiles:  []string{"docs/mkdocs.yml", "docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expected: expected{
+				docsRoot: filepath.Join(workingDirBasePath, "mkdocs-in-docs", "docs"),
+			},
 		},
 		{
-			desc:                 "error case with no mkdocs file found in the search path",
-			workingDirectory:     filepath.Join(workingDirBasePath, "no-mkdocs-in-search-path"),
-			repositoryFiles:      []string{"documentation/mkdocs.yml", "documentation/requirements.txt", "documentation/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
-			expectedDocsRoot:     "",
-			expectedErrorMessage: "no file mkdocs.yml found in " + workingDirBasePath + "/no-mkdocs-in-search-path (search path was: /,docs/)",
+			desc:             "error case with no mkdocs file found in the search path",
+			workingDirectory: filepath.Join(workingDirBasePath, "no-mkdocs-in-search-path"),
+			repositoryFiles:  []string{"documentation/mkdocs.yml", "documentation/requirements.txt", "documentation/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expected: expected{
+				error: "no file mkdocs.yml found in " + workingDirBasePath + "/no-mkdocs-in-search-path (search path was: /, docs/)",
+			},
 		},
 		{
-			desc:                 "error case with no mkdocs file found at all",
-			workingDirectory:     filepath.Join(workingDirBasePath, "no-mkdocs-at-all"),
-			repositoryFiles:      []string{"docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
-			expectedDocsRoot:     "",
-			expectedErrorMessage: "no file mkdocs.yml found in " + workingDirBasePath + "/no-mkdocs-at-all (search path was: /,docs/)",
+			desc:             "error case with no mkdocs file found at all",
+			workingDirectory: filepath.Join(workingDirBasePath, "no-mkdocs-at-all"),
+			repositoryFiles:  []string{"docs/requirements.txt", "docs/docs.Dockerfile", ".gitignore", "docs/index.md", ".github/ISSUE.md"},
+			expected: expected{
+				error: "no file mkdocs.yml found in " + workingDirBasePath + "/no-mkdocs-at-all (search path was: /, docs/)",
+			},
 		},
 	}
 
@@ -108,14 +117,74 @@ func Test_getDocumentationRoot(t *testing.T) {
 				}
 			}
 
-			resultingDocsRoot, resultingError := getDocumentationRoot(test.workingDirectory)
+			docsRoot, err := getDocumentationRoot(test.workingDirectory)
 
-			if test.expectedErrorMessage != "" {
-				assert.EqualError(t, resultingError, test.expectedErrorMessage)
+			if test.expected.error != "" {
+				assert.EqualError(t, err, test.expected.error)
 			} else {
-				require.NoError(t, resultingError)
-				assert.Equal(t, test.expectedDocsRoot, resultingDocsRoot)
+				require.NoError(t, err)
+				assert.Equal(t, test.expected.docsRoot, docsRoot)
 			}
+		})
+	}
+}
+
+func Test_getDocsDirSuffix(t *testing.T) {
+	testCases := []struct {
+		desc     string
+		version  types.VersionsInformation
+		expected string
+	}{
+		{
+			desc: "no suffix",
+			version: types.VersionsInformation{
+				CurrentPath: "/tmp/structor694968263/v2.0",
+				Current:     "v2.0",
+			},
+			expected: "",
+		},
+		{
+			desc: "simple suffix",
+			version: types.VersionsInformation{
+				CurrentPath: "/tmp/structor694968263/v2.0/docs",
+				Current:     "v2.0",
+			},
+			expected: "docs",
+		},
+		{
+			desc: "suffix with slash",
+			version: types.VersionsInformation{
+				CurrentPath: "/tmp/structor694968263/v2.0/docs/",
+				Current:     "v2.0",
+			},
+			expected: "docs",
+		},
+		{
+			desc: "long suffix",
+			version: types.VersionsInformation{
+				CurrentPath: "/tmp/structor694968263/v2.0/docs/foo",
+				Current:     "v2.0",
+			},
+			expected: "docs/foo",
+		},
+		{
+			desc: "contains two times the version path",
+			version: types.VersionsInformation{
+				CurrentPath: "/tmp/structor694968263/v2.0/docs/foo/v2.0/bar",
+				Current:     "v2.0",
+			},
+			expected: "docs/foo/v2.0/bar",
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			suffix := getDocsDirSuffix(test.version)
+
+			assert.Equal(t, test.expected, suffix)
 		})
 	}
 }

@@ -287,6 +287,7 @@ func TestAddEditionURI(t *testing.T) {
 		desc     string
 		manif    map[string]interface{}
 		version  string
+		baseDir  string
 		override bool
 		expected map[string]interface{}
 	}{
@@ -336,6 +337,27 @@ func TestAddEditionURI(t *testing.T) {
 				"edit_uri": "edit/v2/docs/",
 			},
 		},
+		{
+			desc: "version, no override, base dir",
+			manif: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/"},
+			version: "v2",
+			baseDir: "foo",
+			expected: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/",
+			},
+		},
+		{
+			desc: "version, override, base dir",
+			manif: map[string]interface{}{
+				"edit_uri": "edit/v1/docs/"},
+			version:  "v2",
+			baseDir:  "foo",
+			override: true,
+			expected: map[string]interface{}{
+				"edit_uri": "edit/v2/foo/docs/",
+			},
+		},
 	}
 
 	for _, test := range testCases {
@@ -343,7 +365,7 @@ func TestAddEditionURI(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			AddEditionURI(test.manif, test.version, test.override)
+			AddEditionURI(test.manif, test.version, test.baseDir, test.override)
 
 			assert.Equal(t, test.expected, test.manif)
 		})

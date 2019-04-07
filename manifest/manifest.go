@@ -1,9 +1,9 @@
 package manifest
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -80,7 +80,7 @@ func AppendExtraCSS(manif map[string]interface{}, cssFile string) {
 }
 
 // AddEditionURI Adds an edition URI to the "edit_uri" in the manifest file.
-func AddEditionURI(manif map[string]interface{}, version string, override bool) {
+func AddEditionURI(manif map[string]interface{}, version string, docsDirBase string, override bool) {
 	v := version
 	if v == "" {
 		v = "master"
@@ -93,5 +93,5 @@ func AddEditionURI(manif map[string]interface{}, version string, override bool) 
 
 	docsDir := getDocsDirAttribute(manif)
 
-	manif["edit_uri"] = fmt.Sprintf("edit/%s/%s/", v, docsDir)
+	manif["edit_uri"] = path.Join("edit", v, docsDirBase, docsDir) + "/"
 }
