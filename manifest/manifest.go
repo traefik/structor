@@ -5,9 +5,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // FileName file name of the mkdocs manifest file.
@@ -20,14 +22,26 @@ func Read(manifestFilePath string) (map[string]interface{}, error) {
 		return nil, errors.Wrap(err, "error when reading MkDocs Manifest.")
 	}
 
+	bytes = replaceEnvVariables(bytes)
+
 	manif := make(map[string]interface{})
 
-	err = yaml.Unmarshal(bytes, manif)
-	if err != nil {
+	if err = yaml.Unmarshal(bytes, manif); err != nil {
 		return nil, errors.Wrap(err, "error when during unmarshal of the MkDocs Manifest.")
 	}
 
 	return manif, nil
+}
+
+func replaceEnvVariables(bytes []byte) []byte {
+	data := string(bytes)
+	var re = regexp.MustCompile(`!!python\/object\/apply:os\.getenv\s\[[\'|\"]?([A-Z0-9_-]+)[\'|\"]?\]`)
+	result := re.FindAllStringSubmatch(data, -1)
+	for _, value := range result {
+		data = strings.ReplaceAll(data, value[0], os.Getenv(value[1]))
+	}
+
+	return []byte(data)
 }
 
 // Write Writes the manifest.

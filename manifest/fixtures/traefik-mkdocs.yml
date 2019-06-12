@@ -32,8 +32,9 @@ google_analytics:
   - 'docs.traefik.io'
 
 # Options
+extra:
+  traefikVersion: !!python/object/apply:os.getenv [TRAEFIK_VERSION]
 # Comment because the call of the CDN is very slow.
-#extra:
 #  social:
 #    - type: 'github'
 #      link: 'https://github.com/containous/traefik'
