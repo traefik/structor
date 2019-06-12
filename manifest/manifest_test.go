@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -36,6 +37,9 @@ func TestRead(t *testing.T) {
 				},
 				"site_url":  "https://docs.traefik.io",
 				"copyright": "Copyright &copy; 2016-2019 Containous",
+				"extra": map[interface{}]interface{}{
+					"traefikVersion": "powpow",
+				},
 				"theme": map[interface{}]interface{}{
 					"include_sidebar": true,
 					"favicon":         "img/traefik.icon.png",
@@ -109,6 +113,8 @@ func TestRead(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
+			err := os.Setenv("TRAEFIK_VERSION", "powpow")
+			require.NoError(t, err)
 			content, err := Read(filepath.Join(".", "fixtures", test.filename))
 			require.NoError(t, err)
 
