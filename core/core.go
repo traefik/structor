@@ -226,10 +226,11 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 		return err
 	}
 
-	args := []string{"run", "--rm", "-v", versionsInfo.CurrentPath + ":/mkdocs", dockerImageFullName, "mkdocs", "build"}
+	args := []string{"run", "--rm", "-v", versionsInfo.CurrentPath + ":/mkdocs"}
 	if _, err = os.Stat(filepath.Join(versionsInfo.CurrentPath, ".env")); err == nil {
-		args = []string{"run", "--rm", fmt.Sprintf("--env-file=%s", filepath.Join(versionsInfo.CurrentPath, ".env")), "-v", versionsInfo.CurrentPath + ":/mkdocs", dockerImageFullName, "mkdocs", "build"}
+		args = append(args, fmt.Sprintf("--env-file=%s", filepath.Join(versionsInfo.CurrentPath, ".env")))
 	}
+	args = append(args, dockerImageFullName, "mkdocs", "build")
 
 	// Run image
 	output, err := docker.Exec(config.Debug, args...)
