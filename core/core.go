@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -225,8 +226,14 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 		return err
 	}
 
+	args := []string{"run", "--rm", "-v", versionsInfo.CurrentPath + ":/mkdocs"}
+	if _, err = os.Stat(filepath.Join(versionsInfo.CurrentPath, ".env")); err == nil {
+		args = append(args, fmt.Sprintf("--env-file=%s", filepath.Join(versionsInfo.CurrentPath, ".env")))
+	}
+	args = append(args, dockerImageFullName, "mkdocs", "build")
+
 	// Run image
-	output, err := docker.Exec(config.Debug, "run", "--rm", "-v", versionsInfo.CurrentPath+":/mkdocs", dockerImageFullName, "mkdocs", "build")
+	output, err := docker.Exec(config.Debug, args...)
 	if err != nil {
 		log.Println(output)
 		return err

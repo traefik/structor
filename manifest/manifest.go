@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -12,8 +13,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// FileName file name of the mkdocs manifest file.
-const FileName = "mkdocs.yml"
+const (
+	// FileName file name of the mkdocs manifest file.
+	FileName = "mkdocs.yml"
+	// TempPrefixEnvName temp prefix for environment variable.
+	TempPrefixEnvName = "STRUCTOR_TEMP_"
+)
 
 // Read Reads the manifest.
 func Read(manifestFilePath string) (map[string]interface{}, error) {
@@ -38,7 +43,19 @@ func replaceEnvVariables(bytes []byte) []byte {
 	var re = regexp.MustCompile(`!!python\/object\/apply:os\.getenv\s\[[\'|\"]?([A-Z0-9_-]+)[\'|\"]?\]`)
 	result := re.FindAllStringSubmatch(data, -1)
 	for _, value := range result {
-		data = strings.ReplaceAll(data, value[0], os.Getenv(value[1]))
+		data = strings.ReplaceAll(data, value[0], TempPrefixEnvName+value[1])
+	}
+
+	return []byte(data)
+}
+
+func rewriteEnvVariables(bytes []byte) []byte {
+	data := string(bytes)
+	var re = regexp.MustCompile(TempPrefixEnvName + `([A-Z0-9_-]+)`)
+	result := re.FindAllStringSubmatch(data, -1)
+
+	for _, value := range result {
+		data = strings.ReplaceAll(data, value[0], fmt.Sprintf(`!!python/object/apply:os.getenv ["%s"]`, value[1]))
 	}
 
 	return []byte(data)
@@ -50,6 +67,8 @@ func Write(manifestFilePath string, manif map[string]interface{}) error {
 	if err != nil {
 		return errors.Wrap(err, "error when marshal MkDocs Manifest.")
 	}
+
+	out = rewriteEnvVariables(out)
 
 	return ioutil.WriteFile(manifestFilePath, out, os.ModePerm)
 }
