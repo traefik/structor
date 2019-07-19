@@ -2,7 +2,7 @@ var versions = [
   {{- range $version := .Versions }}
   {{- $text := $version.Text }}
   {{- if eq $version.State "PRE_FINAL_RELEASE" }}
-    {{- $text = printf "%s (alpha)" .Name }}
+    {{- $text = printf "%s (beta)" .Name }}
   {{- end}}
   {path: "{{ $version.Path }}", text: "{{ $text }}", selected: {{ eq $version.Name $.Current }} },
   {{- end}}
