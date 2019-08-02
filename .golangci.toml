@@ -29,6 +29,7 @@
     "gas",
     "dupl",
     "prealloc",
+    "bodyclose",
   ]
 
 [issues]
