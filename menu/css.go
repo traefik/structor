@@ -1,11 +1,10 @@
 package menu
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 )
 
 const menuCSSFileName = "structor-menu.css"
@@ -19,13 +18,13 @@ func writeCSSFile(manifestDocsDir string, menuContent Content) (string, error) {
 	if _, errStat := os.Stat(cssDir); os.IsNotExist(errStat) {
 		errDir := os.MkdirAll(cssDir, os.ModePerm)
 		if errDir != nil {
-			return "", errors.Wrap(errDir, "error when create CSS folder")
+			return "", fmt.Errorf("error when create CSS folder: %w", errDir)
 		}
 	}
 
 	err := ioutil.WriteFile(filepath.Join(cssDir, menuCSSFileName), menuContent.CSS, os.ModePerm)
 	if err != nil {
-		return "", errors.Wrap(err, "error when trying ro write CSS file")
+		return "", fmt.Errorf("error when trying ro write CSS file: %w", err)
 	}
 
 	return filepath.Join("theme", "css", menuCSSFileName), nil

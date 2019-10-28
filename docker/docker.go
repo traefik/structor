@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/containous/structor/file"
 	"github.com/containous/structor/types"
-	"github.com/pkg/errors"
 )
 
 // DockerfileInformation Dockerfile information.
@@ -55,7 +55,7 @@ func buildImageFullName(imageName string, tagName string) string {
 func GetDockerfileFallback(dockerfileURL, imageName string) (DockerfileInformation, error) {
 	dockerFileContent, err := file.Download(dockerfileURL)
 	if err != nil {
-		return DockerfileInformation{}, errors.Wrap(err, "failed to download Dockerfile")
+		return DockerfileInformation{}, fmt.Errorf("failed to download Dockerfile: %w", err)
 	}
 
 	return DockerfileInformation{
@@ -88,7 +88,7 @@ func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInforma
 
 		dockerFileContent, err := ioutil.ReadFile(searchPath)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get dockerfile file content.")
+			return nil, fmt.Errorf("failed to get dockerfile file content: %w", err)
 		}
 
 		return &DockerfileInformation{

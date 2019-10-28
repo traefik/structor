@@ -1,12 +1,12 @@
 package repository
 
 import (
+	"errors"
 	"log"
 	"strings"
 	"testing"
 
 	"github.com/ldez/go-git-cmd-wrapper/git"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

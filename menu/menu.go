@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -8,7 +9,6 @@ import (
 	"github.com/containous/structor/file"
 	"github.com/containous/structor/manifest"
 	"github.com/containous/structor/types"
-	"github.com/pkg/errors"
 )
 
 const baseRemote = "origin/"
@@ -46,14 +46,14 @@ func getMenuFileContent(f string, u string) ([]byte, error) {
 	if len(f) > 0 {
 		content, err := ioutil.ReadFile(f)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get template menu file content")
+			return nil, fmt.Errorf("failed to get template menu file content: %w", err)
 		}
 		return content, nil
 	}
 
 	content, err := file.Download(u)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to download menu template")
+		return nil, fmt.Errorf("failed to download menu template: %w", err)
 	}
 	return content, nil
 }
@@ -85,7 +85,7 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 
 	err = manifest.Write(manifestFile, manif)
 	if err != nil {
-		return errors.Wrap(err, "error when edit MkDocs manifest")
+		return fmt.Errorf("error when edit MkDocs manifest: %w", err)
 	}
 
 	return nil

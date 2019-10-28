@@ -96,7 +96,6 @@ func TestGetTemplateContent(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-
 			content := GetTemplateContent(test.menuFiles)
 
 			assert.Equal(t, test.expected, content)

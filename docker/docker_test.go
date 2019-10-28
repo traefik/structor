@@ -182,7 +182,6 @@ func TestGetDockerfile(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-
 			if test.workingDirectory != "" && filepath.IsAbs(test.workingDirectory) {
 				err = os.MkdirAll(test.workingDirectory, os.ModePerm)
 				require.NoError(t, err)

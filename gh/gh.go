@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // GetLatestReleaseTagName find the latest release tag name
@@ -23,12 +21,12 @@ func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	resp, err := client.Get(baseURL + "/latest")
 	if err != nil {
 		logResponseBody(resp)
-		return "", errors.Wrap(err, "failed to get latest release tag name")
+		return "", fmt.Errorf("failed to get latest release tag name: %w", err)
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
 		logResponseBody(resp)
-		return "", errors.Errorf("failed to get latest release tag name on GitHub (%q), status: %s", baseURL+"/latest", resp.Status)
+		return "", fmt.Errorf("failed to get latest release tag name on GitHub (%q), status: %s", baseURL+"/latest", resp.Status)
 	}
 
 	location, err := resp.Location()

@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,7 +23,7 @@ const (
 func Read(manifestFilePath string) (map[string]interface{}, error) {
 	bytes, err := ioutil.ReadFile(manifestFilePath)
 	if err != nil {
-		return nil, errors.Wrap(err, "error when reading MkDocs Manifest.")
+		return nil, fmt.Errorf("error when reading MkDocs Manifest: %w", err)
 	}
 
 	bytes = replaceEnvVariables(bytes)
@@ -32,7 +31,7 @@ func Read(manifestFilePath string) (map[string]interface{}, error) {
 	manif := make(map[string]interface{})
 
 	if err = yaml.Unmarshal(bytes, manif); err != nil {
-		return nil, errors.Wrap(err, "error when during unmarshal of the MkDocs Manifest.")
+		return nil, fmt.Errorf("error when during unmarshal of the MkDocs Manifest: %w", err)
 	}
 
 	return manif, nil
@@ -65,7 +64,7 @@ func rewriteEnvVariables(bytes []byte) []byte {
 func Write(manifestFilePath string, manif map[string]interface{}) error {
 	out, err := yaml.Marshal(manif)
 	if err != nil {
-		return errors.Wrap(err, "error when marshal MkDocs Manifest.")
+		return fmt.Errorf("error when marshal MkDocs Manifest: %w", err)
 	}
 
 	out = rewriteEnvVariables(out)

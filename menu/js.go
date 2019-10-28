@@ -1,15 +1,15 @@
 package menu
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/containous/structor/types"
 	"github.com/hashicorp/go-version"
-	"github.com/pkg/errors"
 )
 
 const menuJsFileName = "structor-menu.js"
@@ -37,7 +37,7 @@ func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types
 	if _, errStat := os.Stat(jsDir); os.IsNotExist(errStat) {
 		errDir := os.MkdirAll(jsDir, os.ModePerm)
 		if errDir != nil {
-			return "", errors.Wrap(errDir, "error when create JS folder")
+			return "", fmt.Errorf("error when create JS folder: %w", errDir)
 		}
 	}
 
@@ -55,12 +55,12 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 
 	_, err := temp.Parse(menuTemplate)
 	if err != nil {
-		return errors.Wrap(err, "error during parsing template")
+		return fmt.Errorf("error during parsing template: %w", err)
 	}
 
 	versions, err := buildVersions(versionsInfo.Current, branches, versionsInfo.Latest, versionsInfo.Experimental)
 	if err != nil {
-		return errors.Wrap(err, "error when build versions")
+		return fmt.Errorf("error when build versions: %w", err)
 	}
 
 	model := struct {
@@ -75,7 +75,7 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 
 	f, err := os.Create(filePath)
 	if err != nil {
-		return errors.Wrap(err, "error when create menu file")
+		return fmt.Errorf("error when create menu file: %w", err)
 	}
 
 	return temp.Execute(f, model)

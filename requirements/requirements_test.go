@@ -41,7 +41,6 @@ func TestCheck(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-
 			if test.workingDirectory != "" {
 				err = os.MkdirAll(test.workingDirectory, os.ModePerm)
 				require.NoError(t, err)
@@ -99,7 +98,6 @@ func TestGetContent(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-
 			content, err := GetContent(test.requirementsPath)
 			require.NoError(t, err)
 
@@ -129,7 +127,6 @@ func TestGetContent_Fail(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-
 			_, err := GetContent(test.requirementsPath)
 			require.Error(t, err)
 		})

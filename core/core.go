@@ -19,7 +19,6 @@ import (
 	"github.com/containous/structor/types"
 	"github.com/ldez/go-git-cmd-wrapper/git"
 	"github.com/ldez/go-git-cmd-wrapper/worktree"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -36,7 +35,7 @@ func Execute(config *types.Configuration) error {
 
 	defer func() {
 		if err = cleanAll(workDir, config.Debug); err != nil {
-			log.Println("Error during cleaning: ", err)
+			log.Println("[WARN] error during cleaning: ", err)
 		}
 	}()
 
@@ -194,13 +193,12 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 		}
 	}
 
-	return "", errors.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ", "))
+	return "", fmt.Errorf("no file %s found in %s (search path was: %s)", manifest.FileName, repositoryRoot, strings.Join(docsRootSearchPaths, ", "))
 }
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
 	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent menu.Content, requirementsContent []byte,
 	config *types.Configuration) error {
-
 	err := addEditionURI(config, versionsInfo)
 	if err != nil {
 		return err

@@ -12,7 +12,6 @@ import (
 
 	"github.com/containous/structor/file"
 	"github.com/containous/structor/types"
-	"github.com/pkg/errors"
 )
 
 const filename = "requirements.txt"
@@ -32,17 +31,16 @@ func GetContent(requirementsPath string) ([]byte, error) {
 	if _, errStat := os.Stat(requirementsPath); errStat == nil {
 		content, err := ioutil.ReadFile(requirementsPath)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to read Requirements file")
+			return nil, fmt.Errorf("failed to read Requirements file: %w", err)
 		}
 		return content, nil
 	}
 
 	content, err := file.Download(requirementsPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to download Requirements file")
+		return nil, fmt.Errorf("failed to download Requirements file: %w", err)
 	}
 	return content, nil
-
 }
 
 // Build Builds a "requirements.txt" file.
@@ -55,7 +53,7 @@ func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 
 	baseContent, err := ioutil.ReadFile(requirementsPath)
 	if err != nil {
-		return errors.Wrapf(err, "unable to read %s", requirementsPath)
+		return fmt.Errorf("unable to read %s: %w", requirementsPath, err)
 	}
 
 	reqBase, err := parse(baseContent)
@@ -102,7 +100,7 @@ func parse(content []byte) (map[string]string, error) {
 		if len(line) > 0 {
 			submatch := exp.FindStringSubmatch(line)
 			if len(submatch) != 3 {
-				return nil, errors.Errorf("invalid line format: %s", line)
+				return nil, fmt.Errorf("invalid line format: %s", line)
 			}
 
 			result[submatch[1]] = submatch[2]

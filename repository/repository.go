@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -8,14 +9,13 @@ import (
 	"github.com/ldez/go-git-cmd-wrapper/git"
 	gTypes "github.com/ldez/go-git-cmd-wrapper/types"
 	"github.com/ldez/go-git-cmd-wrapper/worktree"
-	"github.com/pkg/errors"
 )
 
 // CreateWorkTree create a worktree for a specific version
 func CreateWorkTree(path string, version string, debug bool) error {
 	_, err := git.Worktree(worktree.Add(path, version), git.Debugger(debug))
 	if err != nil {
-		return errors.Wrapf(err, "failed to add worktree on path %s for version %s", path, version)
+		return fmt.Errorf("failed to add worktree on path %s for version %s: %w", path, version, err)
 	}
 
 	return nil
@@ -25,7 +25,7 @@ func CreateWorkTree(path string, version string, debug bool) error {
 func ListBranches(debug bool) ([]string, error) {
 	branchesRaw, err := git.Branch(branch.Remotes, branch.List, branchVersionPattern, git.Debugger(debug))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to retrieves branches")
+		return nil, fmt.Errorf("failed to retrieves branches: %w", err)
 	}
 
 	var branches []string

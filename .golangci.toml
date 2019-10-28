@@ -30,6 +30,8 @@
     "dupl",
     "prealloc",
     "bodyclose",
+    "stylecheck",
+    "wsl",
   ]
 
 [issues]
@@ -37,6 +39,13 @@
   max-per-linter = 0
   max-same-issues = 0
   exclude = []
+
   [[issues.exclude-rules]]
     path = "version.go"
     text = "`(version|date|commit)` is a global variable"
+  [[issues.exclude-rules]]
+    path = "(.+)_test.go"
+    linters = ["funlen"]
+  [[issues.exclude-rules]]
+    path = "core/core.go"
+    text = "Function 'process' is too long"
