@@ -66,7 +66,7 @@ func process(workDir string, config *types.Configuration) error {
 
 	log.Printf("Latest tag: %s", latestTagName)
 
-	branches, err := getBranches(config.ExperimentalBranchName, config.Debug)
+	branches, err := getBranches(config.ExperimentalBranchName, config.ExcludedBranches, config.Debug)
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func getLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	return gh.GetLatestReleaseTagName(owner, repositoryName)
 }
 
-func getBranches(experimentalBranchName string, debug bool) ([]string, error) {
+func getBranches(experimentalBranchName string, excludedBranches []string, debug bool) ([]string, error) {
 	var branches []string
 
 	if len(experimentalBranchName) > 0 {
@@ -140,13 +140,30 @@ func getBranches(experimentalBranchName string, debug bool) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	branches = append(branches, gitBranches...)
+
+	for _, branch := range gitBranches {
+		if containsBranch(excludedBranches, branch) {
+			continue
+		}
+
+		branches = append(branches, branch)
+	}
 
 	if len(branches) == 0 {
 		log.Println("[WARN] no branch.")
 	}
 
 	return branches, nil
+}
+
+func containsBranch(branches []string, branch string) bool {
+	for _, v := range branches {
+		if baseRemote+v == branch {
+			return true
+		}
+	}
+
+	return false
 }
 
 func createSiteDirectory() (string, error) {

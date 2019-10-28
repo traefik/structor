@@ -2,11 +2,14 @@ package core
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/containous/structor/types"
+	"github.com/ldez/go-git-cmd-wrapper/git"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -217,6 +220,70 @@ func Test_createDirectory(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.DirExists(t, test.dirPath)
+		})
+	}
+}
+
+func Test_getBranches(t *testing.T) {
+	git.CmdExecutor = func(name string, debug bool, args ...string) (string, error) {
+		if debug {
+			log.Println(name, strings.Join(args, " "))
+		}
+		return `
+  origin/v1.3
+  origin/v1.1
+  origin/v1.2
+`, nil
+	}
+
+	testCases := []struct {
+		desc                   string
+		experimentalBranchName string
+		excludedBranches       []string
+		expected               []string
+	}{
+		{
+			desc: "all existing branches",
+			expected: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
+		},
+		{
+			desc:                   "add experimental branch",
+			experimentalBranchName: "master",
+			expected: []string{
+				"origin/master",
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
+		},
+		{
+			desc:             "exclude one branch",
+			excludedBranches: []string{"v1.1"},
+			expected: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+			},
+		},
+		{
+			desc:             "exclude all branches",
+			excludedBranches: []string{"v1.1", "v1.2", "v1.3"},
+			expected:         nil,
+		},
+	}
+
+	for _, test := range testCases {
+		test := test
+		t.Run(test.desc, func(t *testing.T) {
+			t.Parallel()
+
+			branches, err := getBranches(test.experimentalBranchName, test.excludedBranches, true)
+			require.NoError(t, err)
+
+			assert.Equal(t, test.expected, branches)
 		})
 	}
 }
