@@ -12,13 +12,13 @@ var (
 )
 
 // displayVersion DisplayVersion version.
-func displayVersion() {
-	fmt.Printf(`structor:
+func displayVersion(appName string) {
+	fmt.Printf(`%s:
  version     : %s
  commit      : %s
  build date  : %s
  go version  : %s
  go compiler : %s
  platform    : %s/%s
-`, version, commit, date, runtime.Version(), runtime.Compiler, runtime.GOOS, runtime.GOARCH)
+`, appName, version, commit, date, runtime.Version(), runtime.Compiler, runtime.GOOS, runtime.GOARCH)
 }

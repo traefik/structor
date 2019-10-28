@@ -49,3 +49,6 @@
   [[issues.exclude-rules]]
     path = "core/core.go"
     text = "Function 'process' is too long"
+  [[issues.exclude-rules]]
+    path = "structor.go"
+    text = "Function 'main' is too long"

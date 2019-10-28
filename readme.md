@@ -14,31 +14,32 @@ Used by [Traefik](https://github.com/containous/traefik): https://docs.traefik.i
 ```yaml
 Messor Structor: Manage multiple documentation versions with Mkdocs.
 
-Usage: structor [--flag=flag_argument] [-f[flag_argument]] ...     set flag_argument to flag(s)
-   or: structor [--flag[=true|false| ]] [-f[true|false| ]] ...     set true/false to boolean flag(s)
+Usage:
+  structor [flags]
+  structor [command]
 
 Available Commands:
-        version                                            Display the version.
-Use "structor [command] --help" for more information about a command.
+  help        Help about any command
+  version     Display version
 
 Flags:
-    --debug           Debug mode.                                                                    (default "false")
-    --dockerfile-name Search and use this Dockerfile in the repository (in './docs/' or in './') for (default "docs.Dockerfile")
-                      building documentation.                                                        
--d, --dockerfile-url  Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]                                                                     
-    --exp-branch      Build a branch as experimental.                                                
-    --force-edit-url  Add a dedicated edition URL for each version.                                  (default "false")
-    --image-name      Docker image name.                                                             (default "doc-site")
-    --menu            Menu templates files.                                                          (default "false")
-    --menu.css-file   File path of the template of the CSS file use for the multi version menu.      
-    --menu.css-url    URL of the template of the CSS file use for the multi version menu.            
-    --menu.js-file    File path of the template of the JS file use for the multi version menu.       
-    --menu.js-url     URL of the template of the JS file use for the multi version menu.             
-    --no-cache        Set to 'true' to disable the Docker build cache.                               (default "false")
--o, --owner           Repository owner. [required]                                                   
--r, --repo-name       Repository name. [required]                                                    
-    --rqts-url        Use this requirements.txt to merge with the current requirements.txt. Can be a file path.
--h, --help            Print Help (this message) and exit
+      --debug                    Debug mode.
+      --dockerfile-name string   Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation. (default "docs.Dockerfile")
+  -d, --dockerfile-url string    Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]
+      --exclude strings          Exclude branches from the documentation generation.
+      --exp-branch string        Build a branch as experimental.
+      --force-edit-url           Add a dedicated edition URL for each version.
+  -h, --help                     help for structor
+      --image-name string        Docker image name. (default "doc-site")
+      --menu.css-file string     File path of the template of the CSS file use for the multi version menu.
+      --menu.css-url string      URL of the template of the CSS file use for the multi version menu.
+      --menu.js-file string      File path of the template of the JS file use for the multi version menu.
+      --menu.js-url string       URL of the template of the JS file use for the multi version menu.
+      --no-cache                 Set to 'true' to disable the Docker build cache.
+  -o, --owner string             Repository owner. [required]
+  -r, --repo-name string         Repository name. [required]
+      --rqts-url string          Use this requirements.txt to merge with the current requirements.txt. Can be a file path.
+      --version                  version for structor
 ```
 
 The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest tag name.

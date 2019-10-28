@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/containous/flaeg"
 	"github.com/containous/structor/core"
 	"github.com/containous/structor/types"
-	"github.com/ogier/pflag"
+	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 )
 
 const (
@@ -17,59 +17,81 @@ const (
 )
 
 func main() {
-	config := &types.Configuration{
+	cfg := &types.Configuration{
 		DockerImageName: defaultDockerImageName,
 		DockerfileName:  defaultDockerfileName,
 		NoCache:         false,
+		Menu:            &types.MenuFiles{},
 	}
 
-	rootCmd := &flaeg.Command{
-		Name:                  "structor",
-		Description:           `Messor Structor: Manage multiple documentation versions with Mkdocs.`,
-		DefaultPointersConfig: &types.Configuration{Menu: &types.MenuFiles{}},
-		Config:                config,
-		Run:                   runCommand(config),
-	}
+	rootCmd := &cobra.Command{
+		Use:     "structor",
+		Short:   "Messor Structor: Manage multiple documentation versions with Mkdocs.",
+		Long:    `Messor Structor: Manage multiple documentation versions with Mkdocs.`,
+		Version: version,
+		PreRunE: func(_ *cobra.Command, _ []string) error {
+			if cfg.Debug {
+				log.Printf("Run Structor command with config : %+v", cfg)
+			}
 
-	flag := flaeg.New(rootCmd, os.Args[1:])
+			if len(cfg.DockerImageName) == 0 {
+				log.Printf("'image-name' is undefined, fallback to %s.", defaultDockerImageName)
+				cfg.DockerImageName = defaultDockerImageName
+			}
 
-	// version
-	versionCmd := &flaeg.Command{
-		Name:                  "version",
-		Description:           "Display the version.",
-		Config:                &types.NoOption{},
-		DefaultPointersConfig: &types.NoOption{},
-		Run: func() error {
-			displayVersion()
-			return nil
+			return validateConfig(cfg)
+		},
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return core.Execute(cfg)
 		},
 	}
 
-	flag.AddCommand(versionCmd)
+	flags := rootCmd.Flags()
+	flags.StringVarP(&cfg.Owner, "owner", "o", "", "Repository owner. [required]")
+	flags.StringVarP(&cfg.RepositoryName, "repo-name", "r", "", "Repository name. [required]")
 
-	err := flag.Run()
-	if err != nil && err != pflag.ErrHelp {
-		log.Printf("Error: %v", err)
+	flags.BoolVar(&cfg.Debug, "debug", false, "Debug mode.")
+
+	flags.StringVarP(&cfg.DockerfileURL, "dockerfile-url", "d", "", "Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]")
+	flags.StringVar(&cfg.DockerfileURL, "dockerfile-name", defaultDockerfileName, "Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation.")
+	flags.StringVar(&cfg.DockerImageName, "image-name", defaultDockerImageName, "Docker image name.")
+	flags.BoolVar(&cfg.NoCache, "no-cache", false, "Set to 'true' to disable the Docker build cache.")
+
+	flags.StringVar(&cfg.ExperimentalBranchName, "exp-branch", "", "Build a branch as experimental.")
+	flags.StringSliceVar(&cfg.ExcludedBranches, "exclude", nil, "Exclude branches from the documentation generation.")
+
+	flags.BoolVar(&cfg.ForceEditionURI, "force-edit-url", false, "Add a dedicated edition URL for each version.")
+	flags.StringVar(&cfg.RequirementsURL, "rqts-url", "", "Use this requirements.txt to merge with the current requirements.txt. Can be a file path.")
+
+	flags.StringVar(&cfg.Menu.JsURL, "menu.js-url", "", "URL of the template of the JS file use for the multi version menu.")
+	flags.StringVar(&cfg.Menu.JsFile, "menu.js-file", "", "File path of the template of the JS file use for the multi version menu.")
+	flags.StringVar(&cfg.Menu.CSSURL, "menu.css-url", "", "URL of the template of the CSS file use for the multi version menu.")
+	flags.StringVar(&cfg.Menu.CSSFile, "menu.css-file", "", "File path of the template of the CSS file use for the multi version menu.")
+
+	docCmd := &cobra.Command{
+		Use:    "doc",
+		Short:  "Generate documentation",
+		Hidden: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return doc.GenMarkdownTree(rootCmd, "./docs")
+		},
 	}
-}
 
-func runCommand(config *types.Configuration) func() error {
-	return func() error {
-		if config.Debug {
-			log.Printf("Run Structor command with config : %+v", config)
-		}
+	rootCmd.AddCommand(docCmd)
 
-		if len(config.DockerImageName) == 0 {
-			log.Printf("'image-name' is undefined, fallback to %s.", defaultDockerImageName)
-			config.DockerImageName = defaultDockerImageName
-		}
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Display version",
+		Run: func(_ *cobra.Command, _ []string) {
+			displayVersion(rootCmd.Name())
+		},
+	}
 
-		err := validateConfig(config)
-		if err != nil {
-			return err
-		}
+	rootCmd.AddCommand(versionCmd)
 
-		return core.Execute(config)
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 
