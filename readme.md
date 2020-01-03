@@ -7,9 +7,69 @@ Structor use git branches to create the versions of a documentation, only works 
 
 To use Structor a project must respect [semver](https://semver.org) and creates a git branch for each `MINOR` and `MAJOR` version.
 
-Used by [Traefik](https://github.com/containous/traefik): https://docs.traefik.io
+Created for [Traefik](https://github.com/containous/traefik) and used by:
+
+* [Traefik](https://github.com/containous/traefik) for https://docs.traefik.io
+* [JanusGraph](https://github.com/JanusGraph/janusgraph) for https://docs.janusgraph.org
+* [ONOS Project](https://github.com/onosproject) for https://docs.onosproject.org
+
+## Prerequisites
+
+* [git](https://git-scm.com/)
+* [Docker](https://www.docker.com/)
+* `requirements.txt`, `mkdocs.yml`, and a Dockerfile.
 
 ## Description
+
+For the following git graph:
+
+```
+* gaaaaaaag - (branch master) commit
+| * faaaaaaaf - (branch v1.2) commit
+| * eaaaaaaae - commit
+|/
+* haaaaaaah - commit
+| * kaaaaaaak - (branch v1.1) commit
+| * jaaaaaaaj - commit
+|/
+* iaaaaaaai - commit
+| * daaaaaaad - (branch v1.0) commit
+| * caaaaaaac - commit
+|/
+* baaaaaaab - commit
+* aaaaaaaaa - initial commit
+```
+
+Structor generates the following files structure:
+
+```
+. (latest, branch v1.2)
+├── index.html
+├── ...
+├── v1.0 (branch v1.0)
+│   ├── index.html
+│   └── ...
+├── v1.1 (branch v1.1)
+│   ├── index.html
+│   └── ...
+└── v1.2 (branch v1.2)
+    ├── index.html
+    └── ...
+```
+
+If the content from `.` is served on `mydoc.com`, documentation will be available at the following URLs:
+
+- `http://mydoc.com` (latest, branch v1.2)
+- `http://mydoc.com/v1.0` (branch v1.0)
+- `http://mydoc.com/v1.1` (branch v1.1)
+- `http://mydoc.com/v1.2` (branch v1.2)
+
+The multi version menu is created from templates provided by the following options:
+
+- `--menu.js-url` (or `--menu.js-file`)
+- `--menu.css-url` (or `--menu.css-file`)
+
+## Configuration
 
 ```yaml
 Messor Structor: Manage multiple documentation versions with Mkdocs.
@@ -42,7 +102,7 @@ Flags:
       --version                  version for structor
 ```
 
-The environment variable `STRUCTOR_LATEST_TAG` allow to override the real latest tag name.
+The environment variable `STRUCTOR_LATEST_TAG` allow to override the latest tag name obtains from GitHub.
 
 The [sprig](http://masterminds.github.io/sprig/) functions for Go templates can be used inside the JS template file.
 
@@ -65,6 +125,8 @@ godownloader --repo=containous/structor > godownloader.sh
 -->
 
 ## Examples
+
+A simple example is available on the repository https://github.com/mmatur/structor-sample.
 
 With menu template URL:
 
