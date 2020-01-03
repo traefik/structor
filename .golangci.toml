@@ -32,6 +32,7 @@
     "bodyclose",
     "stylecheck",
     "wsl",
+    "gomnd",
   ]
 
 [issues]
