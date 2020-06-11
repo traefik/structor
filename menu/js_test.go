@@ -28,6 +28,7 @@ func Test_buildJSFile(t *testing.T) {
 				Current:      "v1.5",
 				Latest:       "v1.4.6",
 				Experimental: "master",
+				BranchPrefix: "v",
 			},
 			jsTemplate: `
 var foo = [
@@ -52,6 +53,7 @@ var foo = [
 				Current:      "v1.4",
 				Latest:       "v1.4.6",
 				Experimental: "master",
+				BranchPrefix: "v",
 			},
 			jsTemplate: `
 var foo = [

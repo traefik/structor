@@ -53,12 +53,14 @@ func main() {
 	flags.BoolVar(&cfg.Debug, "debug", false, "Debug mode.")
 
 	flags.StringVarP(&cfg.DockerfileURL, "dockerfile-url", "d", "", "Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]")
-	flags.StringVar(&cfg.DockerfileURL, "dockerfile-name", defaultDockerfileName, "Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation.")
+	flags.StringVar(&cfg.DockerfileName, "dockerfile-name", defaultDockerfileName, "Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation.")
+	flags.StringVar(&cfg.DockerBuildPath, "docker-build-path", "", "Custom docker build path")
 	flags.StringVar(&cfg.DockerImageName, "image-name", defaultDockerImageName, "Docker image name.")
 	flags.BoolVar(&cfg.NoCache, "no-cache", false, "Set to 'true' to disable the Docker build cache.")
 
 	flags.StringVar(&cfg.ExperimentalBranchName, "exp-branch", "", "Build a branch as experimental.")
 	flags.StringSliceVar(&cfg.ExcludedBranches, "exclude", nil, "Exclude branches from the documentation generation.")
+	flags.StringVarP(&cfg.BranchPrefix, "branch-prefix", "", "v", "Branch prefix.")
 
 	flags.BoolVar(&cfg.ForceEditionURI, "force-edit-url", false, "Add a dedicated edition URL for each version.")
 	flags.StringVar(&cfg.RequirementsURL, "rqts-url", "", "Use this requirements.txt to merge with the current requirements.txt. Can be a file path.")

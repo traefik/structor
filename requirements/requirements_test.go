@@ -58,7 +58,7 @@ func TestCheck(t *testing.T) {
 				}
 			}
 
-			resultingError := Check(test.workingDirectory)
+			resultingError := Check(test.workingDirectory, nil)
 
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)
@@ -189,7 +189,7 @@ pymdown-extensions==4.12
 				CurrentPath: dir,
 			}
 
-			err = Build(versionsInfo, []byte(test.customContent))
+			err = Build(versionsInfo, []byte(test.customContent), nil)
 			require.NoError(t, err)
 
 			require.FileExists(t, requirementPath)

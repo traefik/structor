@@ -17,7 +17,17 @@ import (
 const filename = "requirements.txt"
 
 // Check return an error if the requirements file is not found in the doc root directory.
-func Check(docRoot string) error {
+func Check(docRoot string, requirementsFullPaths []string) error {
+	var exist bool
+	for _, path := range requirementsFullPaths {
+		if _, err := os.Stat(path); err != nil {
+			exist = true
+		}
+	}
+	if exist {
+		return nil
+	}
+
 	_, err := os.Stat(filepath.Join(docRoot, filename))
 	return err
 }
@@ -44,12 +54,21 @@ func GetContent(requirementsPath string) ([]byte, error) {
 }
 
 // Build Builds a "requirements.txt" file.
-func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
+func Build(versionsInfo types.VersionsInformation, customContent []byte, requirementsFullPaths []string) error {
 	if len(customContent) == 0 {
 		return nil
 	}
 
-	requirementsPath := filepath.Join(versionsInfo.CurrentPath, filename)
+	var requirementsPath string
+	for _, path := range requirementsFullPaths {
+		if _, err := os.Stat(path); err != nil {
+			requirementsPath = path
+		}
+	}
+
+	if requirementsPath == "" {
+		requirementsPath = filepath.Join(versionsInfo.CurrentPath, filename)
+	}
 
 	baseContent, err := ioutil.ReadFile(requirementsPath)
 	if err != nil {
@@ -91,7 +110,7 @@ func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 }
 
 func parse(content []byte) (map[string]string, error) {
-	exp := regexp.MustCompile(`([\w-_]+)([=|>|<].+)`)
+	exp := regexp.MustCompile(`([\w~\-_]+)([=|>|<].+)`)
 
 	result := make(map[string]string)
 

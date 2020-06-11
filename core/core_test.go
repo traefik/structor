@@ -140,40 +140,45 @@ func Test_getDocsDirSuffix(t *testing.T) {
 		{
 			desc: "no suffix",
 			version: types.VersionsInformation{
-				CurrentPath: "/tmp/structor694968263/v2.0",
-				Current:     "v2.0",
+				CurrentPath:  "/tmp/structor694968263/v2.0",
+				Current:      "v2.0",
+				BranchPrefix: "v",
 			},
 			expected: "",
 		},
 		{
 			desc: "simple suffix",
 			version: types.VersionsInformation{
-				CurrentPath: "/tmp/structor694968263/v2.0/docs",
-				Current:     "v2.0",
+				CurrentPath:  "/tmp/structor694968263/v2.0/docs",
+				Current:      "v2.0",
+				BranchPrefix: "v",
 			},
 			expected: "docs",
 		},
 		{
 			desc: "suffix with slash",
 			version: types.VersionsInformation{
-				CurrentPath: "/tmp/structor694968263/v2.0/docs/",
-				Current:     "v2.0",
+				CurrentPath:  "/tmp/structor694968263/v2.0/docs/",
+				Current:      "v2.0",
+				BranchPrefix: "v",
 			},
 			expected: "docs",
 		},
 		{
 			desc: "long suffix",
 			version: types.VersionsInformation{
-				CurrentPath: "/tmp/structor694968263/v2.0/docs/foo",
-				Current:     "v2.0",
+				CurrentPath:  "/tmp/structor694968263/v2.0/docs/foo",
+				Current:      "v2.0",
+				BranchPrefix: "v",
 			},
 			expected: "docs/foo",
 		},
 		{
 			desc: "contains two times the version path",
 			version: types.VersionsInformation{
-				CurrentPath: "/tmp/structor694968263/v2.0/docs/foo/v2.0/bar",
-				Current:     "v2.0",
+				CurrentPath:  "/tmp/structor694968263/v2.0/docs/foo/v2.0/bar",
+				Current:      "v2.0",
+				BranchPrefix: "v",
 			},
 			expected: "docs/foo/v2.0/bar",
 		},
@@ -229,6 +234,14 @@ func Test_getBranches(t *testing.T) {
 		if debug {
 			log.Println(name, strings.Join(args, " "))
 		}
+
+		if strings.Contains(args[3], "release-") {
+			return `
+  origin/release-1.3
+  origin/release-1.1
+  origin/release-1.2
+`, nil
+		}
 		return `
   origin/v1.3
   origin/v1.1
@@ -239,12 +252,33 @@ func Test_getBranches(t *testing.T) {
 	testCases := []struct {
 		desc                   string
 		experimentalBranchName string
+		branchPrefix           string
 		excludedBranches       []string
 		expected               []string
+		expectedCleanBranches  []string
 	}{
 		{
-			desc: "all existing branches",
+			desc:         "all existing branches",
+			branchPrefix: "v",
 			expected: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
+			expectedCleanBranches: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
+		},
+		{
+			desc: "all existing branches without prefix",
+			expected: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
+			expectedCleanBranches: []string{
 				"origin/v1.3",
 				"origin/v1.2",
 				"origin/v1.1",
@@ -253,7 +287,14 @@ func Test_getBranches(t *testing.T) {
 		{
 			desc:                   "add experimental branch",
 			experimentalBranchName: "master",
+			branchPrefix:           "v",
 			expected: []string{
+				"origin/master",
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
+			expectedCleanBranches: []string{
 				"origin/master",
 				"origin/v1.3",
 				"origin/v1.2",
@@ -263,15 +304,35 @@ func Test_getBranches(t *testing.T) {
 		{
 			desc:             "exclude one branch",
 			excludedBranches: []string{"v1.1"},
+			branchPrefix:     "v",
 			expected: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+			},
+			expectedCleanBranches: []string{
 				"origin/v1.3",
 				"origin/v1.2",
 			},
 		},
 		{
-			desc:             "exclude all branches",
-			excludedBranches: []string{"v1.1", "v1.2", "v1.3"},
-			expected:         nil,
+			desc:                  "exclude all branches",
+			excludedBranches:      []string{"v1.1", "v1.2", "v1.3"},
+			expected:              nil,
+			expectedCleanBranches: nil,
+		},
+		{
+			desc:         "all existing branches with custom prefix",
+			branchPrefix: "release-",
+			expected: []string{
+				"origin/release-1.3",
+				"origin/release-1.2",
+				"origin/release-1.1",
+			},
+			expectedCleanBranches: []string{
+				"origin/v1.3",
+				"origin/v1.2",
+				"origin/v1.1",
+			},
 		},
 	}
 
@@ -280,10 +341,11 @@ func Test_getBranches(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			branches, err := getBranches(test.experimentalBranchName, test.excludedBranches, true)
+			branches, cleanBranched, err := getBranches(test.experimentalBranchName, test.excludedBranches, true, test.branchPrefix)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.expected, branches)
+			assert.Equal(t, test.expectedCleanBranches, cleanBranched)
 		})
 	}
 }

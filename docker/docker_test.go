@@ -23,6 +23,7 @@ func TestDockerfileInformation_BuildImage(t *testing.T) {
 		Latest:       "v1.1",
 		Experimental: "master",
 		CurrentPath:  "/here",
+		BranchPrefix: "v",
 	}
 
 	info := &DockerfileInformation{
@@ -119,6 +120,7 @@ func TestGetDockerfile(t *testing.T) {
 		dockerfilePath       string
 		dockerfileContent    string
 		dockerfileName       string
+		dockerBuildPath      string
 		expectedDockerfile   *DockerfileInformation
 		expectedErrorMessage string
 	}{
@@ -177,6 +179,38 @@ func TestGetDockerfile(t *testing.T) {
 			expectedDockerfile:   nil,
 			expectedErrorMessage: "stat not-existing: no such file or directory",
 		},
+		{
+			desc:              "normal case with no docs.Dockerfile found and custom buildPath",
+			workingDirectory:  filepath.Join(workingDirBasePath, "normal-no-dockerfile-found"),
+			dockerfilePath:    "",
+			dockerfileContent: "FROM alpine:3.8\n",
+			dockerfileName:    "docs.Dockerfile",
+			dockerBuildPath:   "./custom/path",
+			expectedDockerfile: &DockerfileInformation{
+				Name:      "fallback.Dockerfile",
+				ImageName: "mycompany/backend:1.2.1",
+				Path:      filepath.Join(workingDirBasePath, "fallback"),
+				Content:   []byte("FROM alpine:3.8"),
+				BuildPath: "./custom/path",
+			},
+			expectedErrorMessage: "",
+		},
+		{
+			desc:              "normal case with a docs.Dockerfile in the docs directory",
+			workingDirectory:  filepath.Join(workingDirBasePath, "normal-docs"),
+			dockerfilePath:    filepath.Join(workingDirBasePath, "normal-docs", "docs", "docs.Dockerfile"),
+			dockerfileContent: "FROM alpine:3.8\n",
+			dockerfileName:    "docs.Dockerfile",
+			dockerBuildPath:   "./custom/path",
+			expectedDockerfile: &DockerfileInformation{
+				Name:      "docs.Dockerfile",
+				ImageName: "mycompany/backend:1.2.1",
+				Path:      filepath.Join(workingDirBasePath, "normal-docs", "docs", "docs.Dockerfile"),
+				Content:   []byte("FROM alpine:3.8\n"),
+				BuildPath: "./custom/path",
+			},
+			expectedErrorMessage: "",
+		},
 	}
 
 	for _, test := range testCases {
@@ -196,7 +230,11 @@ func TestGetDockerfile(t *testing.T) {
 				}
 			}
 
-			resultingDockerfile, resultingError := GetDockerfile(test.workingDirectory, fallbackDockerfile, test.dockerfileName)
+			if test.dockerBuildPath != "" {
+				fallbackDockerfile.BuildPath = test.dockerBuildPath
+			}
+
+			resultingDockerfile, resultingError := GetDockerfile(test.workingDirectory, fallbackDockerfile, test.dockerfileName, test.dockerBuildPath)
 
 			if test.expectedErrorMessage != "" {
 				assert.EqualError(t, resultingError, test.expectedErrorMessage)
@@ -215,7 +253,7 @@ func TestGetDockerfileFallback(t *testing.T) {
 	dockerFileURL := serverURL + "/docs.Dockerfile"
 	imageName := "test"
 
-	info, err := GetDockerfileFallback(dockerFileURL, imageName)
+	info, err := GetDockerfileFallback(dockerFileURL, imageName, "")
 	require.NoError(t, err)
 
 	assert.Regexp(t, `\d{12,}.Dockerfile`, info.Name)

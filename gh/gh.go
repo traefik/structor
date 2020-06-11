@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// GetLatestReleaseTagName find the latest release tag name
+// GetLatestReleaseTagName find the latest release tag name.
 func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

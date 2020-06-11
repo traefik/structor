@@ -40,7 +40,6 @@ func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types
 			return "", fmt.Errorf("error when create JS folder: %w", errDir)
 		}
 	}
-
 	menuFilePath := filepath.Join(jsDir, menuJsFileName)
 	errBuild := buildJSFile(menuFilePath, versionsInfo, branches, string(menuContent.Js))
 	if errBuild != nil {
@@ -58,7 +57,7 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 		return fmt.Errorf("error during parsing template: %w", err)
 	}
 
-	versions, err := buildVersions(versionsInfo.Current, branches, versionsInfo.Latest, versionsInfo.Experimental)
+	versions, err := buildVersions(versionsInfo.GetCurrent(), branches, versionsInfo.GetLatest(), versionsInfo.GetExperimental())
 	if err != nil {
 		return fmt.Errorf("error when build versions: %w", err)
 	}
@@ -68,8 +67,8 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 		Current  string
 		Versions []optionVersion
 	}{
-		Latest:   versionsInfo.Latest,
-		Current:  versionsInfo.Current,
+		Latest:   versionsInfo.GetLatest(),
+		Current:  versionsInfo.GetCurrent(),
 		Versions: versions,
 	}
 

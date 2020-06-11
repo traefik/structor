@@ -113,8 +113,9 @@ func TestBuild(t *testing.T) {
 	require.NoError(t, err)
 
 	versionsInfo := types.VersionsInformation{
-		Latest:      "v1.7.9",
-		CurrentPath: projectDir,
+		Latest:       "v1.7.9",
+		CurrentPath:  projectDir,
+		BranchPrefix: "v",
 	}
 
 	var branches []string

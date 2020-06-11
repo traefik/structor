@@ -20,6 +20,7 @@ import (
 type DockerfileInformation struct {
 	Name      string
 	Path      string
+	BuildPath string
 	Content   []byte
 	ImageName string
 	dryRun    bool
@@ -32,10 +33,11 @@ func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformatio
 		return "", err
 	}
 
-	dockerImageFullName := buildImageFullName(d.ImageName, versionsInfo.Current)
+	dockerImageFullName := buildImageFullName(d.ImageName, versionsInfo.GetCurrent())
 
 	// Build image
-	output, err := execCmd(d.dryRun, debug, "build", "--no-cache="+strconv.FormatBool(noCache), "-t", dockerImageFullName, "-f", d.Path, versionsInfo.CurrentPath+"/")
+	output, err := execCmd(d.dryRun, debug, "build", "--no-cache="+strconv.FormatBool(noCache), "-t", dockerImageFullName, "-f", d.Path,
+		filepath.Join(versionsInfo.CurrentPath, d.BuildPath, "/"))
 	if err != nil {
 		log.Println(output)
 		return "", err
@@ -52,7 +54,7 @@ func buildImageFullName(imageName string, tagName string) string {
 }
 
 // GetDockerfileFallback Downloads and creates the DockerfileInformation of the Dockerfile fallback.
-func GetDockerfileFallback(dockerfileURL, imageName string) (DockerfileInformation, error) {
+func GetDockerfileFallback(dockerfileURL, imageName, buildPath string) (DockerfileInformation, error) {
 	dockerFileContent, err := file.Download(dockerfileURL)
 	if err != nil {
 		return DockerfileInformation{}, fmt.Errorf("failed to download Dockerfile: %w", err)
@@ -62,11 +64,12 @@ func GetDockerfileFallback(dockerfileURL, imageName string) (DockerfileInformati
 		Name:      fmt.Sprintf("%v.Dockerfile", time.Now().UnixNano()),
 		Content:   dockerFileContent,
 		ImageName: imageName,
+		BuildPath: buildPath,
 	}, nil
 }
 
 // GetDockerfile Gets the effective Dockerfile.
-func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInformation, dockerfileName string) (*DockerfileInformation, error) {
+func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInformation, dockerfileName string, dockerBuildPath string) (*DockerfileInformation, error) {
 	if workingDirectory == "" {
 		return nil, errors.New("workingDirectory is undefined")
 	}
@@ -96,6 +99,7 @@ func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInforma
 			Path:      searchPath,
 			ImageName: fallbackDockerfile.ImageName,
 			Content:   dockerFileContent,
+			BuildPath: dockerBuildPath,
 		}, nil
 	}
 

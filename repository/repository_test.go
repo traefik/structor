@@ -23,7 +23,7 @@ func TestListBranches(t *testing.T) {
 `, nil
 	}
 
-	branches, err := ListBranches(true)
+	branches, err := ListBranches(true, "v")
 	require.NoError(t, err)
 
 	expected := []string{"origin/v1.3", "origin/v1.2", "origin/v1.1"}
@@ -38,6 +38,6 @@ func TestListBranches_error(t *testing.T) {
 		return "", errors.New("fail")
 	}
 
-	_, err := ListBranches(true)
+	_, err := ListBranches(true, "v")
 	assert.EqualError(t, err, "failed to retrieves branches: fail")
 }

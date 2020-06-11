@@ -83,23 +83,25 @@ Available Commands:
   version     Display version
 
 Flags:
-      --debug                    Debug mode.
-      --dockerfile-name string   Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation. (default "docs.Dockerfile")
-  -d, --dockerfile-url string    Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]
-      --exclude strings          Exclude branches from the documentation generation.
-      --exp-branch string        Build a branch as experimental.
-      --force-edit-url           Add a dedicated edition URL for each version.
-  -h, --help                     help for structor
-      --image-name string        Docker image name. (default "doc-site")
-      --menu.css-file string     File path of the template of the CSS file use for the multi version menu.
-      --menu.css-url string      URL of the template of the CSS file use for the multi version menu.
-      --menu.js-file string      File path of the template of the JS file use for the multi version menu.
-      --menu.js-url string       URL of the template of the JS file use for the multi version menu.
-      --no-cache                 Set to 'true' to disable the Docker build cache.
-  -o, --owner string             Repository owner. [required]
-  -r, --repo-name string         Repository name. [required]
-      --rqts-url string          Use this requirements.txt to merge with the current requirements.txt. Can be a file path.
-      --version                  version for structor
+      --branch-prefix string       Branch prefix. (default "v")
+      --debug                      Debug mode.
+      --docker-build-path string   Custom docker build path
+      --dockerfile-name string     Search and use this Dockerfile in the repository (in './docs/' or in './') for building documentation. (default "docs.Dockerfile")
+  -d, --dockerfile-url string      Use this Dockerfile when --dockerfile-name is not found. Can be a file path. [required]
+      --exclude strings            Exclude branches from the documentation generation.
+      --exp-branch string          Build a branch as experimental.
+      --force-edit-url             Add a dedicated edition URL for each version.
+  -h, --help                       help for structor
+      --image-name string          Docker image name. (default "doc-site")
+      --menu.css-file string       File path of the template of the CSS file use for the multi version menu.
+      --menu.css-url string        URL of the template of the CSS file use for the multi version menu.
+      --menu.js-file string        File path of the template of the JS file use for the multi version menu.
+      --menu.js-url string         URL of the template of the JS file use for the multi version menu.
+      --no-cache                   Set to 'true' to disable the Docker build cache.
+  -o, --owner string               Repository owner. [required]
+  -r, --repo-name string           Repository name. [required]
+      --rqts-url string            Use this requirements.txt to merge with the current requirements.txt. Can be a file path.
+      --version                    version for structor
 ```
 
 The environment variable `STRUCTOR_LATEST_TAG` allow to override the latest tag name obtains from GitHub.
@@ -132,7 +134,7 @@ With menu template URL:
 
 ```shell
 sudo ./structor -o containous -r traefik \
---dockerfile-url="https://raw.githubusercontent.com/containous/traefik/master/docs.Dockerfile" \
+--dockerfile-url="https://raw.githubusercontent.com/containous/traefik/master/docs/docs.Dockerfile" \
 --menu.js-url="https://raw.githubusercontent.com/containous/structor/master/traefik-menu.js.gotmpl" \
 --exp-branch=master --debug
 ```
@@ -141,7 +143,7 @@ With local menu template file:
 
 ```shell
 sudo ./structor -o containous -r traefik \
---dockerfile-url="https://raw.githubusercontent.com/containous/traefik/master/docs.Dockerfile" \
+--dockerfile-url="https://raw.githubusercontent.com/containous/traefik/master/docs/docs.Dockerfile" \
 --menu.js-file="~/go/src/github.com/containous/structor/traefik-menu.js.gotmpl" \
 --exp-branch=master --debug
 ```

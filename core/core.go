@@ -26,7 +26,7 @@ const (
 	envVarLatestTag = "STRUCTOR_LATEST_TAG"
 )
 
-// Execute core process
+// Execute core process.
 func Execute(config *types.Configuration) error {
 	workDir, err := ioutil.TempDir("", "structor")
 	if err != nil {
@@ -49,7 +49,7 @@ func Execute(config *types.Configuration) error {
 func process(workDir string, config *types.Configuration) error {
 	menuContent := menu.GetTemplateContent(config.Menu)
 
-	fallbackDockerfile, err := docker.GetDockerfileFallback(config.DockerfileURL, config.DockerImageName)
+	fallbackDockerfile, err := docker.GetDockerfileFallback(config.DockerfileURL, config.DockerImageName, config.DockerBuildPath)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func process(workDir string, config *types.Configuration) error {
 
 	log.Printf("Latest tag: %s", latestTagName)
 
-	branches, err := getBranches(config.ExperimentalBranchName, config.ExcludedBranches, config.Debug)
+	branches, cleanBranches, err := getBranches(config.ExperimentalBranchName, config.ExcludedBranches, config.Debug, config.BranchPrefix)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func process(workDir string, config *types.Configuration) error {
 	}
 
 	for _, branchRef := range branches {
-		versionName := strings.Replace(branchRef, baseRemote, "", 1)
+		versionName := strings.Replace(strings.Replace(branchRef, config.BranchPrefix, "v", 1), baseRemote, "", 1)
 		log.Printf("Generating doc for version %s", versionName)
 
 		versionCurrentPath := filepath.Join(workDir, versionName)
@@ -92,7 +92,7 @@ func process(workDir string, config *types.Configuration) error {
 			return err
 		}
 
-		err = requirements.Check(versionDocsRoot)
+		err = requirements.Check(versionDocsRoot, config.RequirementsFullPaths)
 		if err != nil {
 			return err
 		}
@@ -102,11 +102,12 @@ func process(workDir string, config *types.Configuration) error {
 			Latest:       latestTagName,
 			Experimental: config.ExperimentalBranchName,
 			CurrentPath:  versionDocsRoot,
+			BranchPrefix: config.BranchPrefix,
 		}
 
 		fallbackDockerfile.Path = filepath.Join(versionsInfo.CurrentPath, fallbackDockerfile.Name)
 
-		err = buildDocumentation(branches, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
+		err = buildDocumentation(cleanBranches, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
 		if err != nil {
 			return err
 		}
@@ -129,16 +130,18 @@ func getLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	return gh.GetLatestReleaseTagName(owner, repositoryName)
 }
 
-func getBranches(experimentalBranchName string, excludedBranches []string, debug bool) ([]string, error) {
+func getBranches(experimentalBranchName string, excludedBranches []string, debug bool, branchPrefix string) ([]string, []string, error) {
 	var branches []string
+	var cleanBranches []string
 
 	if len(experimentalBranchName) > 0 {
 		branches = append(branches, baseRemote+experimentalBranchName)
+		cleanBranches = append(cleanBranches, baseRemote+experimentalBranchName)
 	}
 
-	gitBranches, err := repository.ListBranches(debug)
+	gitBranches, err := repository.ListBranches(debug, branchPrefix)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for _, branch := range gitBranches {
@@ -147,13 +150,18 @@ func getBranches(experimentalBranchName string, excludedBranches []string, debug
 		}
 
 		branches = append(branches, branch)
+		cleanBranchName := branch
+		if branchPrefix != "" && strings.HasPrefix(branch, baseRemote+branchPrefix) {
+			cleanBranchName = strings.Replace(branch, baseRemote+branchPrefix, baseRemote+"v", 1)
+		}
+		cleanBranches = append(cleanBranches, cleanBranchName)
 	}
 
 	if len(branches) == 0 {
 		log.Println("[WARN] no branch.")
 	}
 
-	return branches, nil
+	return branches, cleanBranches, nil
 }
 
 func containsBranch(branches []string, branch string) bool {
@@ -226,12 +234,12 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 		return err
 	}
 
-	err = requirements.Build(versionsInfo, requirementsContent)
+	err = requirements.Build(versionsInfo, requirementsContent, config.RequirementsFullPaths)
 	if err != nil {
 		return err
 	}
 
-	baseDockerfile, err := docker.GetDockerfile(versionsInfo.CurrentPath, fallbackDockerfile, config.DockerfileName)
+	baseDockerfile, err := docker.GetDockerfile(versionsInfo.CurrentPath, fallbackDockerfile, config.DockerfileName, config.DockerBuildPath)
 	if err != nil {
 		return err
 	}
@@ -271,13 +279,13 @@ func addEditionURI(config *types.Configuration, versionsInfo types.VersionsInfor
 
 	docsDirSuffix := getDocsDirSuffix(versionsInfo)
 
-	manifest.AddEditionURI(manif, versionsInfo.Current, docsDirSuffix, true)
+	manifest.AddEditionURI(manif, versionsInfo.GetCurrent(), docsDirSuffix, true)
 
 	return manifest.Write(manifestFile, manif)
 }
 
 func getDocsDirSuffix(versionsInfo types.VersionsInformation) string {
-	parts := strings.SplitN(versionsInfo.CurrentPath, string(filepath.Separator)+versionsInfo.Current+string(filepath.Separator), 2)
+	parts := strings.SplitN(versionsInfo.CurrentPath, string(filepath.Separator)+versionsInfo.GetCurrent()+string(filepath.Separator), 2)
 	if len(parts) <= 1 {
 		return ""
 	}
@@ -294,8 +302,8 @@ func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir
 		return err
 	}
 
-	outputDir := filepath.Join(siteDir, versionsInfo.Current)
-	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+	outputDir := filepath.Join(siteDir, versionsInfo.GetCurrent())
+	if strings.HasPrefix(versionsInfo.GetLatest(), versionsInfo.GetCurrent()) {
 		// Create a permalink for the latest version
 		err := file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 		if err != nil {
