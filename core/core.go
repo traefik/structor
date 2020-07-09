@@ -26,7 +26,7 @@ const (
 	envVarLatestTag = "STRUCTOR_LATEST_TAG"
 )
 
-// Execute core process
+// Execute core process.
 func Execute(config *types.Configuration) error {
 	workDir, err := ioutil.TempDir("", "structor")
 	if err != nil {
@@ -199,7 +199,7 @@ func createDirectory(directoryPath string) error {
 // Search is done from the docsRootSearchPath, relatively to the provided repository path.
 // An additional sanity checking is done on the file named "requirements.txt" which must be located in the same directory.
 func getDocumentationRoot(repositoryRoot string) (string, error) {
-	var docsRootSearchPaths = []string{"/", "docs/"}
+	docsRootSearchPaths := []string{"/", "docs/"}
 
 	for _, docsRootSearchPath := range docsRootSearchPaths {
 		candidateDocsRootPath := filepath.Join(repositoryRoot, docsRootSearchPath)

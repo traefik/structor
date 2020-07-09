@@ -46,7 +46,7 @@ func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformatio
 
 // buildImageFullName returns the full docker image name, in the form image:tag.
 // Please note that normalization is applied to avoid forbidden characters.
-func buildImageFullName(imageName string, tagName string) string {
+func buildImageFullName(imageName, tagName string) string {
 	r := strings.NewReplacer(":", "-", "/", "-")
 	return r.Replace(imageName) + ":" + r.Replace(tagName)
 }
@@ -108,7 +108,7 @@ func Exec(debug bool, args ...string) (string, error) {
 	return execCmd(false, debug, args...)
 }
 
-func execCmd(dryRun bool, debug bool, args ...string) (string, error) {
+func execCmd(dryRun, debug bool, args ...string) (string, error) {
 	cmdName := "docker"
 
 	if debug || dryRun {

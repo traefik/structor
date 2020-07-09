@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-// Copy copies src to dst
+// Copy copies src to dst.
 func Copy(src, dst string) error {
 	info, err := os.Stat(src)
 	if err != nil {

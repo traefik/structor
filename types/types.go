@@ -19,7 +19,7 @@ type Configuration struct {
 	ForceEditionURI        bool       `long:"force-edit-url" description:"Add a dedicated edition URL for each version."`
 }
 
-// MenuFiles menu template files references
+// MenuFiles menu template files references.
 type MenuFiles struct {
 	JsURL   string `long:"js-url" description:"URL of the template of the JS file use for the multi version menu."`
 	JsFile  string `long:"js-file" description:"File path of the template of the JS file use for the multi version menu."`
@@ -27,17 +27,17 @@ type MenuFiles struct {
 	CSSFile string `long:"css-file" description:"File path of the template of the CSS file use for the multi version menu."`
 }
 
-// HasJsFile has JS file
+// HasJsFile has JS file.
 func (m *MenuFiles) HasJsFile() bool {
 	return m != nil && len(m.JsFile) > 0 || len(m.JsURL) > 0
 }
 
-// HasCSSFile has CSS file
+// HasCSSFile has CSS file.
 func (m *MenuFiles) HasCSSFile() bool {
 	return m != nil && len(m.CSSFile) > 0 || len(m.CSSURL) > 0
 }
 
-// VersionsInformation versions information
+// VersionsInformation versions information.
 type VersionsInformation struct {
 	Current      string
 	Latest       string

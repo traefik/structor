@@ -107,7 +107,7 @@ func validateConfig(config *types.Configuration) error {
 	return required(config.RepositoryName, "repo-name")
 }
 
-func required(field string, fieldName string) error {
+func required(field, fieldName string) error {
 	if len(field) == 0 {
 		return fmt.Errorf("%s is mandatory", fieldName)
 	}

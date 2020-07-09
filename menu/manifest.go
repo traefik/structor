@@ -4,7 +4,7 @@ import (
 	"github.com/containous/structor/manifest"
 )
 
-func editManifest(manif map[string]interface{}, versionJsFile string, versionCSSFile string) {
+func editManifest(manif map[string]interface{}, versionJsFile, versionCSSFile string) {
 	// Append menu JS file
 	manifest.AppendExtraJs(manif, versionJsFile)
 

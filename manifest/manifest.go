@@ -39,7 +39,7 @@ func Read(manifestFilePath string) (map[string]interface{}, error) {
 
 func replaceEnvVariables(bytes []byte) []byte {
 	data := string(bytes)
-	var re = regexp.MustCompile(`!!python\/object\/apply:os\.getenv\s\[[\'|\"]?([A-Z0-9_-]+)[\'|\"]?\]`)
+	re := regexp.MustCompile(`!!python\/object\/apply:os\.getenv\s\[[\'|\"]?([A-Z0-9_-]+)[\'|\"]?\]`)
 	result := re.FindAllStringSubmatch(data, -1)
 	for _, value := range result {
 		data = strings.ReplaceAll(data, value[0], TempPrefixEnvName+value[1])
@@ -50,7 +50,7 @@ func replaceEnvVariables(bytes []byte) []byte {
 
 func rewriteEnvVariables(bytes []byte) []byte {
 	data := string(bytes)
-	var re = regexp.MustCompile(TempPrefixEnvName + `([A-Z0-9_-]+)`)
+	re := regexp.MustCompile(TempPrefixEnvName + `([A-Z0-9_-]+)`)
 	result := re.FindAllStringSubmatch(data, -1)
 
 	for _, value := range result {
@@ -112,7 +112,7 @@ func AppendExtraCSS(manif map[string]interface{}, cssFile string) {
 }
 
 // AddEditionURI Adds an edition URI to the "edit_uri" in the manifest file.
-func AddEditionURI(manif map[string]interface{}, version string, docsDirBase string, override bool) {
+func AddEditionURI(manif map[string]interface{}, version, docsDirBase string, override bool) {
 	v := version
 	if v == "" {
 		v = "master"

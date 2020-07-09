@@ -81,7 +81,7 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 	return temp.Execute(f, model)
 }
 
-func buildVersions(currentVersion string, branches []string, latestTagName string, experimentalBranchName string) ([]optionVersion, error) {
+func buildVersions(currentVersion string, branches []string, latestTagName, experimentalBranchName string) ([]optionVersion, error) {
 	latestVersion, err := version.NewVersion(latestTagName)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func buildVersions(currentVersion string, branches []string, latestTagName strin
 	return versions, nil
 }
 
-func sameMinor(v1 *version.Version, v2 *version.Version) bool {
+func sameMinor(v1, v2 *version.Version) bool {
 	v1Parts := v1.Segments()
 	v2Parts := v2.Segments()
 

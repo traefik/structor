@@ -42,7 +42,7 @@ func GetTemplateContent(menu *types.MenuFiles) Content {
 	return content
 }
 
-func getMenuFileContent(f string, u string) ([]byte, error) {
+func getMenuFileContent(f, u string) ([]byte, error) {
 	if len(f) > 0 {
 		content, err := ioutil.ReadFile(f)
 		if err != nil {

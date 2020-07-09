@@ -1,7 +1,7 @@
 # Messor Structor: Manage multiple documentation versions with Mkdocs.
 
 [![GitHub release](https://img.shields.io/github/release/containous/structor.svg)](https://github.com/containous/structor/releases/latest)
-[![Build Status](https://travis-ci.org/containous/structor.svg?branch=master)](https://travis-ci.org/containous/structor)
+[![Build Status](https://travis-ci.com/containous/structor.svg?branch=master)](https://travis-ci.com/containous/structor)
 
 Structor use git branches to create the versions of a documentation, only works with Mkdocs.
 

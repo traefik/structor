@@ -48,7 +48,8 @@ func TestRead(t *testing.T) {
 					"custom_dir":      "docs/theme",
 					"language":        "en",
 					"logo":            "img/traefik.logo.png",
-					"palette":         map[interface{}]interface{}{"primary": "cyan", "accent": "cyan"}},
+					"palette":         map[interface{}]interface{}{"primary": "cyan", "accent": "cyan"},
+				},
 				"google_analytics": []interface{}{"UA-51880359-3", "docs.traefik.io"},
 				"extra_javascript": []interface{}{"theme/js/hljs/highlight.pack.js", "theme/js/extra.js"},
 				"pages": []interface{}{
@@ -305,7 +306,8 @@ func TestAddEditionURI(t *testing.T) {
 		{
 			desc: "no version, no override",
 			manif: map[string]interface{}{
-				"edit_uri": "edit/v666/docs/"},
+				"edit_uri": "edit/v666/docs/",
+			},
 			version: "",
 			expected: map[string]interface{}{
 				"edit_uri": "edit/v666/docs/",
@@ -314,7 +316,8 @@ func TestAddEditionURI(t *testing.T) {
 		{
 			desc: "no version, override",
 			manif: map[string]interface{}{
-				"edit_uri": "edit/v1/docs/"},
+				"edit_uri": "edit/v1/docs/",
+			},
 			version:  "",
 			override: true,
 			expected: map[string]interface{}{
@@ -324,7 +327,8 @@ func TestAddEditionURI(t *testing.T) {
 		{
 			desc: "version, no override",
 			manif: map[string]interface{}{
-				"edit_uri": "edit/v1/docs/"},
+				"edit_uri": "edit/v1/docs/",
+			},
 			version: "v2",
 			expected: map[string]interface{}{
 				"edit_uri": "edit/v1/docs/",
@@ -333,7 +337,8 @@ func TestAddEditionURI(t *testing.T) {
 		{
 			desc: "version, override",
 			manif: map[string]interface{}{
-				"edit_uri": "edit/v1/docs/"},
+				"edit_uri": "edit/v1/docs/",
+			},
 			version:  "v2",
 			override: true,
 			expected: map[string]interface{}{
@@ -343,7 +348,8 @@ func TestAddEditionURI(t *testing.T) {
 		{
 			desc: "version, no override, base dir",
 			manif: map[string]interface{}{
-				"edit_uri": "edit/v1/docs/"},
+				"edit_uri": "edit/v1/docs/",
+			},
 			version: "v2",
 			baseDir: "foo",
 			expected: map[string]interface{}{
@@ -353,7 +359,8 @@ func TestAddEditionURI(t *testing.T) {
 		{
 			desc: "version, override, base dir",
 			manif: map[string]interface{}{
-				"edit_uri": "edit/v1/docs/"},
+				"edit_uri": "edit/v1/docs/",
+			},
 			version:  "v2",
 			baseDir:  "foo",
 			override: true,

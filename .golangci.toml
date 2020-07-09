@@ -33,6 +33,9 @@
     "stylecheck",
     "wsl",
     "gomnd",
+    "testpackage",
+    "noctx",
+    "goerr113",
   ]
 
 [issues]
