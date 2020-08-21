@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/containous/structor/file"
-	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/traefik/structor/file"
+	"github.com/traefik/structor/types"
 )
 
 func TestCheck(t *testing.T) {

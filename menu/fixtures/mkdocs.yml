@@ -4,7 +4,7 @@ site_author: containo.us
 dev_addr: 0.0.0.0:8000
 
 repo_name: 'GitHub'
-repo_url: 'https://github.com/containous/structor'
+repo_url: 'https://github.com/traefik/structor'
 
 docs_dir: 'docs'
 

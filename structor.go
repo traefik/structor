@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/containous/structor/core"
-	"github.com/containous/structor/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
+	"github.com/traefik/structor/core"
+	"github.com/traefik/structor/types"
 )
 
 const (

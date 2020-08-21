@@ -1,15 +1,23 @@
 language: go
 
-go:
-  - 1.13.x
-  - 1.x
-
-sudo: false
+cache:
+  directories:
+    - $GOPATH/pkg/mod
 
 notifications:
   email:
     on_success: never
     on_failure: change
+
+jobs:
+  fast_finish: true
+  include:
+    - go: 1.15.x
+      env: STABLE=true
+    - go: 1.x
+    - go: tip
+  allow_failures:
+    - go: tip
 
 env:
   - GO111MODULE=on
@@ -28,4 +36,4 @@ deploy:
     script: curl -sL https://git.io/goreleaser | bash
     on:
       tags: true
-      condition: $TRAVIS_GO_VERSION =~ ^1\.x$
+      condition: $STABLE = true

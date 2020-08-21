@@ -1,15 +1,15 @@
 # Messor Structor: Manage multiple documentation versions with Mkdocs.
 
-[![GitHub release](https://img.shields.io/github/release/containous/structor.svg)](https://github.com/containous/structor/releases/latest)
-[![Build Status](https://travis-ci.com/containous/structor.svg?branch=master)](https://travis-ci.com/containous/structor)
+[![GitHub release](https://img.shields.io/github/release/traefik/structor.svg)](https://github.com/traefik/structor/releases/latest)
+[![Build Status](https://travis-ci.com/traefik/structor.svg?branch=master)](https://travis-ci.com/traefik/structor)
 
 Structor use git branches to create the versions of a documentation, only works with Mkdocs.
 
 To use Structor a project must respect [semver](https://semver.org) and creates a git branch for each `MINOR` and `MAJOR` version.
 
-Created for [Traefik](https://github.com/containous/traefik) and used by:
+Created for [Traefik](https://github.com/traefik/traefik) and used by:
 
-* [Traefik](https://github.com/containous/traefik) for https://docs.traefik.io
+* [Traefik](https://github.com/traefik/traefik) for https://docs.traefik.io
 * [JanusGraph](https://github.com/JanusGraph/janusgraph) for https://docs.janusgraph.org
 * [ONOS Project](https://github.com/onosproject) for https://docs.onosproject.org
 
@@ -109,18 +109,18 @@ The [sprig](http://masterminds.github.io/sprig/) functions for Go templates can 
 ## Download / CI Integration
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/containous/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.7.0
+curl -sfL https://raw.githubusercontent.com/traefik/structor/master/godownloader.sh | bash -s -- -b $GOPATH/bin v1.7.0
 ```
 
 <!--
 To generate the script:
 
 ```bash
-godownloader --repo=containous/structor -o godownloader.sh
+godownloader --repo=traefik/structor -o godownloader.sh
 
 # or
 
-godownloader --repo=containous/structor > godownloader.sh
+godownloader --repo=traefik/structor > godownloader.sh
 ```
 -->
 
@@ -131,18 +131,18 @@ A simple example is available on the repository https://github.com/mmatur/struct
 With menu template URL:
 
 ```shell
-sudo ./structor -o containous -r traefik \
---dockerfile-url="https://raw.githubusercontent.com/containous/traefik/master/docs.Dockerfile" \
---menu.js-url="https://raw.githubusercontent.com/containous/structor/master/traefik-menu.js.gotmpl" \
+sudo ./structor -o traefik -r traefik \
+--dockerfile-url="https://raw.githubusercontent.com/traefik/traefik/master/docs.Dockerfile" \
+--menu.js-url="https://raw.githubusercontent.com/traefik/structor/master/traefik-menu.js.gotmpl" \
 --exp-branch=master --debug
 ```
 
 With local menu template file:
 
 ```shell
-sudo ./structor -o containous -r traefik \
---dockerfile-url="https://raw.githubusercontent.com/containous/traefik/master/docs.Dockerfile" \
---menu.js-file="~/go/src/github.com/containous/structor/traefik-menu.js.gotmpl" \
+sudo ./structor -o traefik -r traefik \
+--dockerfile-url="https://raw.githubusercontent.com/traefik/traefik/master/docs.Dockerfile" \
+--menu.js-file="~/go/src/github.com/traefik/structor/traefik-menu.js.gotmpl" \
 --exp-branch=master --debug
 ```
 

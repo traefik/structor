@@ -6,9 +6,9 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/containous/structor/file"
-	"github.com/containous/structor/manifest"
-	"github.com/containous/structor/types"
+	"github.com/traefik/structor/file"
+	"github.com/traefik/structor/manifest"
+	"github.com/traefik/structor/types"
 )
 
 const baseRemote = "origin/"

@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/containous/structor/file"
-	"github.com/containous/structor/manifest"
-	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/traefik/structor/file"
+	"github.com/traefik/structor/manifest"
+	"github.com/traefik/structor/types"
 )
 
 func TestGetTemplateContent(t *testing.T) {
