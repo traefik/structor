@@ -36,6 +36,7 @@
     "testpackage",
     "noctx",
     "goerr113",
+    "nlreturn",
   ]
 
 [issues]

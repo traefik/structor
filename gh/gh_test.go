@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetLatestReleaseTagName(t *testing.T) {
-	tagName, err := GetLatestReleaseTagName("containous", "structor")
+	tagName, err := GetLatestReleaseTagName("traefik", "structor")
 
 	require.NoError(t, err)
 	assert.Regexp(t, `v\d+.\d+(.\d+)?`, tagName)

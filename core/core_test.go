@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/containous/structor/types"
 	"github.com/ldez/go-git-cmd-wrapper/git"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/traefik/structor/types"
 )
 
 func Test_getLatestReleaseTagName(t *testing.T) {
@@ -23,13 +23,13 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 	}{
 		{
 			desc:           "without env var override",
-			owner:          "containous",
+			owner:          "traefik",
 			repositoryName: "structor",
 			expected:       `v\d+.\d+(.\d+)?`,
 		},
 		{
 			desc:            "with env var override",
-			owner:           "containous",
+			owner:           "traefik",
 			repositoryName:  "structor",
 			envVarLatestTag: "foo",
 			expected:        "foo",

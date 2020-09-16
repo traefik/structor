@@ -1,7 +1,7 @@
 package menu
 
 import (
-	"github.com/containous/structor/manifest"
+	"github.com/traefik/structor/manifest"
 )
 
 func editManifest(manif map[string]interface{}, versionJsFile, versionCSSFile string) {

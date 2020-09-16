@@ -8,8 +8,8 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
-	"github.com/containous/structor/types"
 	"github.com/hashicorp/go-version"
+	"github.com/traefik/structor/types"
 )
 
 const menuJsFileName = "structor-menu.js"

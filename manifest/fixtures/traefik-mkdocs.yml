@@ -5,7 +5,7 @@ site_url: https://docs.traefik.io
 dev_addr: 0.0.0.0:8000
 
 repo_name: 'GitHub'
-repo_url: 'https://github.com/containous/traefik'
+repo_url: 'https://github.com/traefik/traefik'
 
 docs_dir: 'docs'
 
@@ -37,7 +37,7 @@ extra:
 # Comment because the call of the CDN is very slow.
 #  social:
 #    - type: 'github'
-#      link: 'https://github.com/containous/traefik'
+#      link: 'https://github.com/traefik/traefik'
 #    - type: 'stack-overflow'
 #      link: 'https://stackoverflow.com/questions/tagged/traefik'
 #    - type: 'slack'

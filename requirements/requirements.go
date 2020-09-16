@@ -10,8 +10,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/containous/structor/file"
-	"github.com/containous/structor/types"
+	"github.com/traefik/structor/file"
+	"github.com/traefik/structor/types"
 )
 
 const filename = "requirements.txt"

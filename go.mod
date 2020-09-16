@@ -1,6 +1,6 @@
-module github.com/containous/structor
+module github.com/traefik/structor
 
-go 1.13
+go 1.14
 
 require (
 	github.com/Masterminds/sprig/v3 v3.0.2

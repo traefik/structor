@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containous/structor/file"
-	"github.com/containous/structor/types"
+	"github.com/traefik/structor/file"
+	"github.com/traefik/structor/types"
 )
 
 // DockerfileInformation Dockerfile information.

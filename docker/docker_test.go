@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/containous/structor/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/traefik/structor/types"
 )
 
 func TestDockerfileInformation_BuildImage(t *testing.T) {

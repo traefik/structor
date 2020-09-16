@@ -103,7 +103,7 @@ func TestRead(t *testing.T) {
 					},
 				},
 				"repo_name": "GitHub",
-				"repo_url":  "https://github.com/containous/traefik",
+				"repo_url":  "https://github.com/traefik/traefik",
 			},
 		},
 	}

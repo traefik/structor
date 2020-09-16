@@ -9,16 +9,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/containous/structor/docker"
-	"github.com/containous/structor/file"
-	"github.com/containous/structor/gh"
-	"github.com/containous/structor/manifest"
-	"github.com/containous/structor/menu"
-	"github.com/containous/structor/repository"
-	"github.com/containous/structor/requirements"
-	"github.com/containous/structor/types"
 	"github.com/ldez/go-git-cmd-wrapper/git"
 	"github.com/ldez/go-git-cmd-wrapper/worktree"
+	"github.com/traefik/structor/docker"
+	"github.com/traefik/structor/file"
+	"github.com/traefik/structor/gh"
+	"github.com/traefik/structor/manifest"
+	"github.com/traefik/structor/menu"
+	"github.com/traefik/structor/repository"
+	"github.com/traefik/structor/requirements"
+	"github.com/traefik/structor/types"
 )
 
 const (
