@@ -15,12 +15,119 @@ func TestRead(t *testing.T) {
 		expected map[string]interface{}
 	}{
 		{
-			desc:     "",
+			desc:     "with !!python",
+			filename: "sample-mkdocs.yml",
+			expected: map[string]interface{}{
+				"copyright": "Copyright &copy; 2020 drasyl",
+				"dev_addr":  "0.0.0.0:8000",
+				"docs_dir":  "content",
+				"edit_uri":  "https://git.informatik.uni-hamburg.de/sane-public/drasyl/-/edit/master/docs/content",
+				"extra": map[interface{}]interface{}{
+					"social": []interface{}{
+						map[interface{}]interface{}{
+							"icon": "fontawesome/brands/github",
+							"link": "https://github.com/drasyl-overlay/drasyl/",
+							"name": "GitHub repo of drasyl",
+						},
+						map[interface{}]interface{}{
+							"icon": "fontawesome/brands/gitlab",
+							"link": "https://git.informatik.uni-hamburg.de/sane-public/drasyl",
+							"name": "GitLab repo of drasyl",
+						},
+						map[interface{}]interface{}{
+							"icon": "fontawesome/brands/docker",
+							"link": "https://hub.docker.com/r/drasyl/drasyl",
+							"name": "Docker repo of drasyl",
+						},
+					},
+				},
+				"extra_css": []interface{}{"assets/style/content.css", "assets/style/atom-one-light.css"},
+				"extra_javascript": []interface{}{
+					"assets/js/mermaid.min.js",
+					"assets/js/hljs/highlight.min.js",
+					"assets/js/extra.js",
+				},
+				"markdown_extensions": []interface{}{
+					"admonition",
+					map[interface{}]interface{}{"toc": map[interface{}]interface{}{"permalink": true}},
+					"pymdownx.details",
+					"pymdownx.inlinehilite",
+					map[interface{}]interface{}{"pymdownx.highlight": map[interface{}]interface{}{"use_pygments": false}},
+					"pymdownx.smartsymbols",
+					map[interface{}]interface{}{"pymdownx.superfences": map[interface{}]interface{}{
+						"custom_fences": []interface{}{map[interface{}]interface{}{
+							"class":  "mermaid",
+							"format": "!!python/name:pymdownx.superfences.fence_div_format",
+							"name":   "mermaid",
+						}},
+					}},
+					"pymdownx.tasklist",
+				},
+				"nav": []interface{}{
+					map[interface{}]interface{}{"Welcome": "index.md"},
+					map[interface{}]interface{}{
+						"Getting Started": []interface{}{
+							map[interface{}]interface{}{"Quick Start": "getting-started/quick-start.md"},
+							map[interface{}]interface{}{"Build": "getting-started/build.md"},
+							map[interface{}]interface{}{"Snapshots": "getting-started/snapshots.md"},
+							map[interface{}]interface{}{"CLI": "getting-started/cli.md"},
+							map[interface{}]interface{}{"Super-Peers": "getting-started/super-peers.md"},
+						},
+					},
+					map[interface{}]interface{}{
+						"Configuration": []interface{}{
+							map[interface{}]interface{}{"Overview": "configuration/index.md"},
+						},
+					},
+					map[interface{}]interface{}{"Contributing": []interface{}{
+						map[interface{}]interface{}{"Submitting Issues": "contributing/submitting_issues.md"},
+						map[interface{}]interface{}{"Submiting PRs": "contributing/submitting_pull_request.md"},
+					}},
+					map[interface{}]interface{}{
+						"Architecture": []interface{}{
+							map[interface{}]interface{}{"Concepts": "architecture/concepts.md"},
+							map[interface{}]interface{}{"Diagrams": "architecture/diagrams.md"},
+						},
+					},
+				},
+				"plugins": []interface{}{
+					"search",
+					map[interface{}]interface{}{
+						"git-revision-date-localized": map[interface{}]interface{}{"fallback_to_build_date": true, "type": "date"},
+					},
+				},
+				"repo_name":        "drasyl-overlay/drasyl",
+				"repo_url":         "https://github.com/drasyl-overlay/drasyl",
+				"site_author":      "drasyl",
+				"site_description": "drasyl Documentation",
+				"site_name":        "drasyl",
+				"site_url":         "https://docs.drasyl.org",
+				"theme": map[interface{}]interface{}{
+					"favicon": "assets/img/favicon.ico",
+					"feature": map[interface{}]interface{}{"tabs": false},
+					"i18n": map[interface{}]interface{}{
+						"next": "Next",
+						"prev": "Previous",
+					},
+					"icon":            map[interface{}]interface{}{"repo": "fontawesome/brands/github"},
+					"include_sidebar": true,
+					"language":        "en",
+					"logo":            "assets/img/drasyl.png",
+					"name":            "material",
+					"palette": map[interface{}]interface{}{
+						"accent":  "teal",
+						"primary": "teal",
+					},
+				},
+			},
+		},
+		{
+			desc:     "empty",
 			filename: "empty-mkdocs.yml",
 			expected: map[string]interface{}{},
 		},
 		{
-			desc:     "",
+			desc:     "traefik",
 			filename: "traefik-mkdocs.yml",
 			expected: map[string]interface{}{
 				"site_name":        "Traefik",

@@ -1,0 +1,94 @@
+site_name: drasyl
+site_description: drasyl Documentation
+site_author: drasyl
+site_url: https://docs.drasyl.org
+dev_addr: 0.0.0.0:8000
+
+repo_name: 'drasyl-overlay/drasyl'
+repo_url: 'https://github.com/drasyl-overlay/drasyl'
+
+edit_uri: https://git.informatik.uni-hamburg.de/sane-public/drasyl/-/edit/master/docs/content
+
+docs_dir: 'content'
+
+# https://squidfunk.github.io/mkdocs-material/
+theme:
+  name: 'material'
+  language: en
+  include_sidebar: true
+  favicon: assets/img/favicon.ico
+  logo: assets/img/drasyl.png
+  feature:
+    tabs: false
+  palette:
+    primary: teal
+    accent: teal
+  i18n:
+    prev: 'Previous'
+    next: 'Next'
+  icon:
+    repo: fontawesome/brands/github
+
+copyright: "Copyright &copy; 2020 drasyl"
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/drasyl-overlay/drasyl/
+      name: GitHub repo of drasyl
+    - icon: fontawesome/brands/gitlab
+      link: https://git.informatik.uni-hamburg.de/sane-public/drasyl
+      name: GitLab repo of drasyl
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/drasyl/drasyl
+      name: Docker repo of drasyl
+
+extra_css:
+  - assets/style/content.css
+  - assets/style/atom-one-light.css
+
+extra_javascript:
+  - assets/js/mermaid.min.js
+  - assets/js/hljs/highlight.min.js # Download from https://highlightjs.org/download/
+  - assets/js/extra.js
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      type: date
+      fallback_to_build_date: true
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.highlight:
+      use_pygments: false # hljs is used instead of pygment for TOML highlighting support
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      # make exceptions to highlighting of code:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+  - pymdownx.tasklist
+
+# Page tree
+nav:
+  - 'Welcome': 'index.md'
+  - 'Getting Started':
+      - 'Quick Start': 'getting-started/quick-start.md'
+      - 'Build': 'getting-started/build.md'
+      - 'Snapshots': 'getting-started/snapshots.md'
+      - 'CLI': 'getting-started/cli.md'
+      - 'Super-Peers': 'getting-started/super-peers.md'
+  - 'Configuration':
+      - 'Overview': 'configuration/index.md'
+  - 'Contributing':
+      - 'Submitting Issues': 'contributing/submitting_issues.md'
+      - 'Submiting PRs': 'contributing/submitting_pull_request.md'
+  - 'Architecture':
+      - 'Concepts': 'architecture/concepts.md'
+      - 'Diagrams': 'architecture/diagrams.md'

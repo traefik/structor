@@ -21,16 +21,17 @@ const (
 
 // Read Reads the manifest.
 func Read(manifestFilePath string) (map[string]interface{}, error) {
-	bytes, err := ioutil.ReadFile(manifestFilePath)
+	content, err := ioutil.ReadFile(manifestFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("error when reading MkDocs Manifest: %w", err)
 	}
 
-	bytes = replaceEnvVariables(bytes)
+	content = replaceEnvVariables(content)
+	content = regexp.MustCompile(`: (\!\!python.+)`).ReplaceAll(content, []byte(`: '$1'`))
 
 	manif := make(map[string]interface{})
 
-	if err = yaml.Unmarshal(bytes, manif); err != nil {
+	if err = yaml.Unmarshal(content, manif); err != nil {
 		return nil, fmt.Errorf("error when during unmarshal of the MkDocs Manifest: %w", err)
 	}
 
@@ -62,14 +63,15 @@ func rewriteEnvVariables(bytes []byte) []byte {
 
 // Write Writes the manifest.
 func Write(manifestFilePath string, manif map[string]interface{}) error {
-	out, err := yaml.Marshal(manif)
+	content, err := yaml.Marshal(manif)
 	if err != nil {
 		return fmt.Errorf("error when marshal MkDocs Manifest: %w", err)
 	}
 
-	out = rewriteEnvVariables(out)
+	content = rewriteEnvVariables(content)
+	content = regexp.MustCompile(`: '(\!\!python.+)'`).ReplaceAll(content, []byte(`: $1`))
 
-	return ioutil.WriteFile(manifestFilePath, out, os.ModePerm)
+	return ioutil.WriteFile(manifestFilePath, content, os.ModePerm)
 }
 
 // GetDocsDir returns the path to the directory pointed by "docs_dir" in the manifest file.
