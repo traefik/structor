@@ -10,6 +10,7 @@ To use Structor a project must respect [semver](https://semver.org) and creates 
 Created for [Traefik](https://github.com/traefik/traefik) and used by:
 
 * [Traefik](https://github.com/traefik/traefik) for https://docs.traefik.io
+* [Redis Labs](https://redislabs.com/) https://redislabs.com/community/oss-projects/
 * [JanusGraph](https://github.com/JanusGraph/janusgraph) for https://docs.janusgraph.org
 * [ONOS Project](https://github.com/onosproject) for https://docs.onosproject.org
 * [Drasyl](https://gitlab.com/drasyl/drasyl) for https://docs.drasyl.org
