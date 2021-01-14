@@ -10,7 +10,7 @@ import (
 func Download(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to download: %w", err)
 	}
 
 	defer func() { _ = resp.Body.Close() }()

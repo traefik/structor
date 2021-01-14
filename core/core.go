@@ -30,7 +30,7 @@ const (
 func Execute(config *types.Configuration) error {
 	workDir, err := ioutil.TempDir("", "structor")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
 
 	defer func() {
@@ -51,29 +51,29 @@ func process(workDir string, config *types.Configuration) error {
 
 	fallbackDockerfile, err := docker.GetDockerfileFallback(config.DockerfileURL, config.DockerImageName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get Dockerfile fallback: %w", err)
 	}
 
 	requirementsContent, err := requirements.GetContent(config.RequirementsURL)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get requirements content: %w", err)
 	}
 
 	latestTagName, err := getLatestReleaseTagName(config.Owner, config.RepositoryName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get latest release: %w", err)
 	}
 
 	log.Printf("Latest tag: %s", latestTagName)
 
 	branches, err := getBranches(config.ExperimentalBranchName, config.ExcludedBranches, config.Debug)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get branches: %w", err)
 	}
 
 	siteDir, err := createSiteDirectory()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create site directory: %w", err)
 	}
 
 	for _, branchRef := range branches {
@@ -84,17 +84,17 @@ func process(workDir string, config *types.Configuration) error {
 
 		err := repository.CreateWorkTree(versionCurrentPath, branchRef, config.Debug)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create worktree: %w", err)
 		}
 
 		versionDocsRoot, err := getDocumentationRoot(versionCurrentPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get documentation path: %w", err)
 		}
 
 		err = requirements.Check(versionDocsRoot)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to check requirements: %w", err)
 		}
 
 		versionsInfo := types.VersionsInformation{
@@ -108,12 +108,12 @@ func process(workDir string, config *types.Configuration) error {
 
 		err = buildDocumentation(branches, versionsInfo, fallbackDockerfile, menuContent, requirementsContent, config)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to build documentation: %w", err)
 		}
 
 		err = copyVersionSiteToOutputSite(versionsInfo, siteDir)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to copy site directory: %w", err)
 		}
 	}
 
@@ -138,7 +138,7 @@ func getBranches(experimentalBranchName string, excludedBranches []string, debug
 
 	gitBranches, err := repository.ListBranches(debug)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list branches: %w", err)
 	}
 
 	for _, branch := range gitBranches {
@@ -169,13 +169,13 @@ func containsBranch(branches []string, branch string) bool {
 func createSiteDirectory() (string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get current directory: %w", err)
 	}
 
 	siteDir := filepath.Join(currentDir, "site")
 	err = createDirectory(siteDir)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create site directory: %w", err)
 	}
 
 	return siteDir, nil
@@ -223,22 +223,22 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 
 	err = menu.Build(versionsInfo, branches, menuTemplateContent)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build the menu: %w", err)
 	}
 
 	err = requirements.Build(versionsInfo, requirementsContent)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build the requirements: %w", err)
 	}
 
 	baseDockerfile, err := docker.GetDockerfile(versionsInfo.CurrentPath, fallbackDockerfile, config.DockerfileName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get Dockerfile: %w", err)
 	}
 
 	dockerImageFullName, err := baseDockerfile.BuildImage(versionsInfo, config.NoCache, config.Debug)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build Docker image: %w", err)
 	}
 
 	args := []string{"run", "--rm", "-v", versionsInfo.CurrentPath + ":/mkdocs"}
@@ -251,7 +251,7 @@ func buildDocumentation(branches []string, versionsInfo types.VersionsInformatio
 	output, err := docker.Exec(config.Debug, args...)
 	if err != nil {
 		log.Println(output)
-		return err
+		return fmt.Errorf("failed to run Docker image: %w", err)
 	}
 
 	return nil
@@ -299,7 +299,7 @@ func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir
 		// Create a permalink for the latest version
 		err := file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create permalink for the latest version: %w", err)
 		}
 
 		outputDir = siteDir
@@ -312,7 +312,7 @@ func cleanAll(workDir string, debug bool) error {
 	output, err := git.Worktree(worktree.Prune, git.Debugger(debug))
 	if err != nil {
 		log.Println(output)
-		return err
+		return fmt.Errorf("failed to prune worktree: %w", err)
 	}
 
 	return os.RemoveAll(workDir)

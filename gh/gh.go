@@ -31,7 +31,7 @@ func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 
 	location, err := resp.Location()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get location header: %w", err)
 	}
 
 	return strings.TrimPrefix(location.String(), baseURL+"/tag/"), nil

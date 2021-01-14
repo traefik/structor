@@ -1,7 +1,7 @@
 # Messor Structor: Manage multiple documentation versions with Mkdocs.
 
 [![GitHub release](https://img.shields.io/github/release/traefik/structor.svg)](https://github.com/traefik/structor/releases/latest)
-[![Build Status](https://travis-ci.com/traefik/structor.svg?branch=master)](https://travis-ci.com/traefik/structor)
+[![Build Status](https://github.com/traefik/structor/workflows/Main/badge.svg?branch=master)](https://github.com/traefik/structor/actions)
 
 Structor use git branches to create the versions of a documentation, only works with Mkdocs.
 

@@ -90,7 +90,7 @@ func main() {
 	rootCmd.AddCommand(versionCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Printf("failed to execute: %v\n", err)
 		os.Exit(1)
 	}
 }
