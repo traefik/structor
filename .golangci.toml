@@ -32,11 +32,17 @@
     "bodyclose",
     "stylecheck",
     "wsl",
+    "nlreturn",
     "gomnd",
     "testpackage",
+    "paralleltest",
+    "tparallel",
+    "exhaustive",
+    "exhaustivestruct",
     "noctx",
     "goerr113",
-    "nlreturn",
+    "wrapcheck",
+    "forbidigo",
   ]
 
 [issues]
@@ -47,7 +53,7 @@
 
   [[issues.exclude-rules]]
     path = "version.go"
-    text = "`(version|date|commit)` is a global variable"
+    text = "(version|date|commit) is a global variable"
   [[issues.exclude-rules]]
     path = "(.+)_test.go"
     linters = ["funlen"]
