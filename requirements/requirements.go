@@ -73,7 +73,7 @@ func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 
 	f, err := os.Create(requirementsPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create requirement file %s: %w", requirementsPath, err)
 	}
 	defer safeClose(f.Close)
 

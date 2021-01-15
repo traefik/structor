@@ -266,7 +266,7 @@ func addEditionURI(config *types.Configuration, versionsInfo types.VersionsInfor
 
 	manif, err := manifest.Read(manifestFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read manifest: %w", err)
 	}
 
 	docsDirSuffix := getDocsDirSuffix(versionsInfo)

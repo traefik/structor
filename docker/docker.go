@@ -29,7 +29,7 @@ type DockerfileInformation struct {
 func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformation, noCache, debug bool) (string, error) {
 	err := ioutil.WriteFile(d.Path, d.Content, os.ModePerm)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to write Docker file: %w", err)
 	}
 
 	dockerImageFullName := buildImageFullName(d.ImageName, versionsInfo.Current)
@@ -38,7 +38,7 @@ func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformatio
 	output, err := execCmd(d.dryRun, debug, "build", "--no-cache="+strconv.FormatBool(noCache), "-t", dockerImageFullName, "-f", d.Path, versionsInfo.CurrentPath+"/")
 	if err != nil {
 		log.Println(output)
-		return "", err
+		return "", fmt.Errorf("failed to build Docker image %s (path: %s, current path: %s): %w", dockerImageFullName, d.Path, versionsInfo.CurrentPath, err)
 	}
 
 	return dockerImageFullName, nil

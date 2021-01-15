@@ -64,7 +64,7 @@ func Build(versionsInfo types.VersionsInformation, branches []string, menuConten
 
 	manif, err := manifest.Read(manifestFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read manifest %s: %w", manifestFile, err)
 	}
 
 	manifestDocsDir := manifest.GetDocsDir(manif, manifestFile)

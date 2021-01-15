@@ -84,7 +84,7 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 func buildVersions(currentVersion string, branches []string, latestTagName, experimentalBranchName string) ([]optionVersion, error) {
 	latestVersion, err := version.NewVersion(latestTagName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse latest tag version %s: %w", latestTagName, err)
 	}
 
 	var versions []optionVersion
@@ -106,7 +106,7 @@ func buildVersions(currentVersion string, branches []string, latestTagName, expe
 		default:
 			simpleVersion, err := version.NewVersion(versionName)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to parse version %s: %w", versionName, err)
 			}
 
 			v := optionVersion{
