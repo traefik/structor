@@ -27,7 +27,7 @@ func Read(manifestFilePath string) (map[string]interface{}, error) {
 	}
 
 	content = replaceEnvVariables(content)
-	content = regexp.MustCompile(`: (\!\!python.+)`).ReplaceAll(content, []byte(`: '$1'`))
+	content = regexp.MustCompile(`: (!!python.+)`).ReplaceAll(content, []byte(`: '$1'`))
 
 	manif := make(map[string]interface{})
 
@@ -69,7 +69,7 @@ func Write(manifestFilePath string, manif map[string]interface{}) error {
 	}
 
 	content = rewriteEnvVariables(content)
-	content = regexp.MustCompile(`: '(\!\!python.+)'`).ReplaceAll(content, []byte(`: $1`))
+	content = regexp.MustCompile(`: '(!!python.+)'`).ReplaceAll(content, []byte(`: $1`))
 
 	return ioutil.WriteFile(manifestFilePath, content, os.ModePerm)
 }

@@ -34,7 +34,7 @@ func main() {
 				log.Printf("Run Structor command with config : %+v", cfg)
 			}
 
-			if len(cfg.DockerImageName) == 0 {
+			if cfg.DockerImageName == "" {
 				log.Printf("'image-name' is undefined, fallback to %s.", defaultDockerImageName)
 				cfg.DockerImageName = defaultDockerImageName
 			}
@@ -108,7 +108,7 @@ func validateConfig(config *types.Configuration) error {
 }
 
 func required(field, fieldName string) error {
-	if len(field) == 0 {
+	if field == "" {
 		return fmt.Errorf("%s is mandatory", fieldName)
 	}
 	return nil

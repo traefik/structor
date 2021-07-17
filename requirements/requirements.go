@@ -24,7 +24,7 @@ func Check(docRoot string) error {
 
 // GetContent Gets the content of the "requirements.txt".
 func GetContent(requirementsPath string) ([]byte, error) {
-	if len(requirementsPath) == 0 {
+	if requirementsPath == "" {
 		return nil, nil
 	}
 
@@ -91,7 +91,7 @@ func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 }
 
 func parse(content []byte) (map[string]string, error) {
-	exp := regexp.MustCompile(`([\w-_]+)([=|>|<].+)`)
+	exp := regexp.MustCompile(`([\w-]+)([=|><].+)`)
 
 	result := make(map[string]string)
 
