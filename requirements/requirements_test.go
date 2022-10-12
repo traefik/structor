@@ -1,7 +1,6 @@
 package requirements
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,7 +14,7 @@ import (
 )
 
 func TestCheck(t *testing.T) {
-	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
+	workingDirBasePath, err := os.MkdirTemp("", "structor-test")
 	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
@@ -177,7 +176,7 @@ pymdown-extensions==4.12
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			dir, err := ioutil.TempDir("", "structor-test")
+			dir, err := os.MkdirTemp("", "structor-test")
 			require.NoError(t, err)
 			defer func() { _ = os.RemoveAll(dir) }()
 
@@ -193,7 +192,7 @@ pymdown-extensions==4.12
 			require.NoError(t, err)
 
 			require.FileExists(t, requirementPath)
-			content, err := ioutil.ReadFile(requirementPath)
+			content, err := os.ReadFile(requirementPath)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.expected, string(content))
@@ -226,7 +225,7 @@ pkg5<1.3
 }
 
 func mustReadFile(path string) []byte {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}

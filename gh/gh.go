@@ -2,7 +2,7 @@ package gh
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -45,7 +45,7 @@ func logResponseBody(resp *http.Response) {
 
 	defer safeClose(resp.Body.Close)
 
-	body, errBody := ioutil.ReadAll(resp.Body)
+	body, errBody := io.ReadAll(resp.Body)
 	if errBody != nil {
 		log.Println(errBody)
 		return

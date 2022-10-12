@@ -3,7 +3,6 @@ package docker
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -27,7 +26,7 @@ type DockerfileInformation struct {
 
 // BuildImage Builds a Docker image.
 func (d *DockerfileInformation) BuildImage(versionsInfo types.VersionsInformation, noCache, debug bool) (string, error) {
-	err := ioutil.WriteFile(d.Path, d.Content, os.ModePerm)
+	err := os.WriteFile(d.Path, d.Content, os.ModePerm)
 	if err != nil {
 		return "", fmt.Errorf("failed to write Docker file: %w", err)
 	}
@@ -86,7 +85,7 @@ func GetDockerfile(workingDirectory string, fallbackDockerfile DockerfileInforma
 
 		log.Printf("Found Dockerfile for building documentation in %s.", searchPath)
 
-		dockerFileContent, err := ioutil.ReadFile(searchPath)
+		dockerFileContent, err := os.ReadFile(searchPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dockerfile file content: %w", err)
 		}

@@ -2,7 +2,6 @@ package requirements
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -29,7 +28,7 @@ func GetContent(requirementsPath string) ([]byte, error) {
 	}
 
 	if _, errStat := os.Stat(requirementsPath); errStat == nil {
-		content, err := ioutil.ReadFile(requirementsPath)
+		content, err := os.ReadFile(requirementsPath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read Requirements file: %w", err)
 		}
@@ -51,7 +50,7 @@ func Build(versionsInfo types.VersionsInformation, customContent []byte) error {
 
 	requirementsPath := filepath.Join(versionsInfo.CurrentPath, filename)
 
-	baseContent, err := ioutil.ReadFile(requirementsPath)
+	baseContent, err := os.ReadFile(requirementsPath)
 	if err != nil {
 		return fmt.Errorf("unable to read %s: %w", requirementsPath, err)
 	}

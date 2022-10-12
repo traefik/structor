@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -28,7 +27,7 @@ const (
 
 // Execute core process.
 func Execute(config *types.Configuration) error {
-	workDir, err := ioutil.TempDir("", "structor")
+	workDir, err := os.MkdirTemp("", "structor")
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
@@ -215,7 +214,8 @@ func getDocumentationRoot(repositoryRoot string) (string, error) {
 
 func buildDocumentation(branches []string, versionsInfo types.VersionsInformation,
 	fallbackDockerfile docker.DockerfileInformation, menuTemplateContent menu.Content, requirementsContent []byte,
-	config *types.Configuration) error {
+	config *types.Configuration,
+) error {
 	err := addEditionURI(config, versionsInfo)
 	if err != nil {
 		return err

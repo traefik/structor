@@ -14,9 +14,6 @@ default: clean checks test build
 test: clean
 	go test -v -cover ./...
 
-dependencies:
-	dep ensure -v
-
 clean:
 	rm -f cover.out
 

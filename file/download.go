@@ -2,7 +2,7 @@ package file
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -19,5 +19,5 @@ func Download(url string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to download %q: %s", url, resp.Status)
 	}
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }

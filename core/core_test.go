@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,9 +38,7 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-			err := os.Setenv(envVarLatestTag, test.envVarLatestTag)
-			require.NoError(t, err)
-			defer func() { _ = os.Unsetenv(envVarLatestTag) }()
+			t.Setenv(envVarLatestTag, test.envVarLatestTag)
 
 			tagName, err := getLatestReleaseTagName(test.owner, test.repositoryName)
 			require.NoError(t, err)
@@ -52,7 +49,7 @@ func Test_getLatestReleaseTagName(t *testing.T) {
 }
 
 func Test_getDocumentationRoot(t *testing.T) {
-	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
+	workingDirBasePath, err := os.MkdirTemp("", "structor-test")
 	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
@@ -192,7 +189,7 @@ func Test_getDocsDirSuffix(t *testing.T) {
 }
 
 func Test_createDirectory(t *testing.T) {
-	dir, err := ioutil.TempDir("", "structor-test")
+	dir, err := os.MkdirTemp("", "structor-test")
 	require.NoError(t, err)
 	defer func() { _ = os.RemoveAll(dir) }()
 

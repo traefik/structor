@@ -2,7 +2,6 @@ package file
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -50,13 +49,19 @@ func directoryCopy(src, dst string, info os.FileInfo) error {
 		return err
 	}
 
-	infos, err := ioutil.ReadDir(src)
+	dirEntries, err := os.ReadDir(src)
 	if err != nil {
 		return err
 	}
 
-	for _, info := range infos {
-		if err := tryCopy(filepath.Join(src, info.Name()), filepath.Join(dst, info.Name()), info); err != nil {
+	for _, entry := range dirEntries {
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+
+		err = tryCopy(filepath.Join(src, info.Name()), filepath.Join(dst, info.Name()), info)
+		if err != nil {
 			return err
 		}
 	}

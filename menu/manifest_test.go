@@ -2,7 +2,6 @@ package menu
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -83,7 +82,7 @@ func setupTestManifest(src string) (string, func()) {
 		return "", func() {}
 	}
 
-	dir, err := ioutil.TempDir("", "structor-test")
+	dir, err := os.MkdirTemp("", "structor-test")
 	if err != nil {
 		return "", func() {}
 	}
@@ -105,10 +104,10 @@ func setupTestManifest(src string) (string, func()) {
 func assertSameContent(t *testing.T, expectedFilePath, actualFilePath string) {
 	t.Helper()
 
-	content, err := ioutil.ReadFile(actualFilePath)
+	content, err := os.ReadFile(actualFilePath)
 	require.NoError(t, err)
 
-	expected, err := ioutil.ReadFile(expectedFilePath)
+	expected, err := os.ReadFile(expectedFilePath)
 	require.NoError(t, err)
 
 	assert.Equal(t, string(expected), string(content))

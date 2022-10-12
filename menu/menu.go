@@ -2,8 +2,8 @@ package menu
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/traefik/structor/file"
@@ -13,7 +13,7 @@ import (
 
 const baseRemote = "origin/"
 
-// Content Content of menu files.
+// Content the content of menu files.
 type Content struct {
 	Js  []byte
 	CSS []byte
@@ -44,7 +44,7 @@ func GetTemplateContent(menu *types.MenuFiles) Content {
 
 func getMenuFileContent(f, u string) ([]byte, error) {
 	if len(f) > 0 {
-		content, err := ioutil.ReadFile(f)
+		content, err := os.ReadFile(f)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get template menu file content: %w", err)
 		}

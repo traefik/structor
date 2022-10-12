@@ -2,14 +2,13 @@ package manifest
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 
 // Read Reads the manifest.
 func Read(manifestFilePath string) (map[string]interface{}, error) {
-	content, err := ioutil.ReadFile(manifestFilePath)
+	content, err := os.ReadFile(manifestFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("error when reading MkDocs Manifest: %w", err)
 	}
@@ -55,7 +54,7 @@ func rewriteEnvVariables(bytes []byte) []byte {
 	result := re.FindAllStringSubmatch(data, -1)
 
 	for _, value := range result {
-		data = strings.ReplaceAll(data, value[0], fmt.Sprintf(`!!python/object/apply:os.getenv ["%s"]`, value[1]))
+		data = strings.ReplaceAll(data, value[0], fmt.Sprintf(`!!python/object/apply:os.getenv [%q]`, value[1]))
 	}
 
 	return []byte(data)
@@ -71,7 +70,7 @@ func Write(manifestFilePath string, manif map[string]interface{}) error {
 	content = rewriteEnvVariables(content)
 	content = regexp.MustCompile(`: '(!!python.+)'`).ReplaceAll(content, []byte(`: $1`))
 
-	return ioutil.WriteFile(manifestFilePath, content, os.ModePerm)
+	return os.WriteFile(manifestFilePath, content, os.ModePerm)
 }
 
 // GetDocsDir returns the path to the directory pointed by "docs_dir" in the manifest file.

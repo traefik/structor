@@ -2,7 +2,6 @@ package menu
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -22,7 +21,7 @@ func writeCSSFile(manifestDocsDir string, menuContent Content) (string, error) {
 		}
 	}
 
-	err := ioutil.WriteFile(filepath.Join(cssDir, menuCSSFileName), menuContent.CSS, os.ModePerm)
+	err := os.WriteFile(filepath.Join(cssDir, menuCSSFileName), menuContent.CSS, os.ModePerm)
 	if err != nil {
 		return "", fmt.Errorf("error when trying ro write CSS file: %w", err)
 	}

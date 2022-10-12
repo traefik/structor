@@ -1,7 +1,6 @@
 package menu
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -104,7 +103,7 @@ func TestGetTemplateContent(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	projectDir, err := ioutil.TempDir("", "structor-test")
+	projectDir, err := os.MkdirTemp("", "structor-test")
 	require.NoError(t, err)
 	defer func() { _ = os.RemoveAll(projectDir) }()
 

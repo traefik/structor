@@ -1,7 +1,6 @@
 package menu
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -78,7 +77,7 @@ var foo = [
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
-			dir, err := ioutil.TempDir("", "structor-test")
+			dir, err := os.MkdirTemp("", "structor-test")
 			require.NoError(t, err)
 			defer func() { _ = os.RemoveAll(dir) }()
 
@@ -89,7 +88,7 @@ var foo = [
 
 			assert.FileExists(t, jsFile)
 
-			content, err := ioutil.ReadFile(jsFile)
+			content, err := os.ReadFile(jsFile)
 			require.NoError(t, err)
 
 			assert.Equal(t, test.expected, string(content))
@@ -233,7 +232,7 @@ func Test_buildVersions(t *testing.T) {
 }
 
 func mustReadFile(path string) []byte {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}

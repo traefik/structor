@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -14,7 +13,7 @@ import (
 )
 
 func TestDockerfileInformation_BuildImage(t *testing.T) {
-	dir, err := ioutil.TempDir("", "structor-test")
+	dir, err := os.MkdirTemp("", "structor-test")
 	require.NoError(t, err)
 	defer func() { _ = os.RemoveAll(dir) }()
 
@@ -102,7 +101,7 @@ func Test_buildImageFullName(t *testing.T) {
 }
 
 func TestGetDockerfile(t *testing.T) {
-	workingDirBasePath, err := ioutil.TempDir("", "structor-test")
+	workingDirBasePath, err := os.MkdirTemp("", "structor-test")
 	defer func() { _ = os.RemoveAll(workingDirBasePath) }()
 	require.NoError(t, err)
 
@@ -191,7 +190,7 @@ func TestGetDockerfile(t *testing.T) {
 				err = os.MkdirAll(filepath.Dir(test.dockerfilePath), os.ModePerm)
 				require.NoError(t, err)
 				if test.dockerfileContent != "" {
-					err = ioutil.WriteFile(test.dockerfilePath, []byte(test.dockerfileContent), os.ModePerm)
+					err = os.WriteFile(test.dockerfilePath, []byte(test.dockerfileContent), os.ModePerm)
 					require.NoError(t, err)
 				}
 			}
@@ -225,7 +224,7 @@ func TestGetDockerfileFallback(t *testing.T) {
 }
 
 func mustReadFile(path string) []byte {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}

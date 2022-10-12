@@ -1,9 +1,9 @@
 package file
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -36,7 +36,7 @@ func TestDownload_Fail(t *testing.T) {
 }
 
 func mustReadFile(path string) []byte {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
