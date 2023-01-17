@@ -8,6 +8,18 @@ var versions = [
   {{- end}}
 ];
 
+{{- range $version := .Versions }}
+{{ if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
+function addBannerMaterial() {
+  // TODO
+}
+
+function addBannerUnited() {
+  // TODO
+}
+{{- end}}
+{{- end}}
+
 // Material theme
 
 function addMaterialMenu(elt, versions) {
@@ -119,7 +131,9 @@ const materialSelector = 'div.md-container main.md-main div.md-main__inner.md-gr
 let elt = document.querySelector(materialSelector);
 if (elt) {
     addMaterialMenu(elt, versions);
+    addBannerMaterial();
 } else {
     const elt = document.querySelector(unitedSelector);
     addMenu(elt, versions);
+    addBannerUnited();
 }

@@ -18,6 +18,7 @@ const (
 	stateLatest          = "LATEST"
 	stateExperimental    = "EXPERIMENTAL"
 	statePreFinalRelease = "PRE_FINAL_RELEASE"
+	stateObsolete        = "OBSOLETE"
 )
 
 type optionVersion struct {
@@ -87,14 +88,15 @@ func buildVersions(currentVersion string, branches []string, latestTagName, expe
 		return nil, fmt.Errorf("failed to parse latest tag version %s: %w", latestTagName, err)
 	}
 
+	rawVersions, heads := parseBranches(branches)
+
 	var versions []optionVersion
-	for _, branch := range branches {
-		versionName := strings.Replace(branch, baseRemote, "", 1)
+	for _, versionName := range rawVersions {
 		selected := currentVersion == versionName
 
 		switch versionName {
 		case latestTagName:
-			// skip, because we must the branch instead of the tag
+			// skip, because we must use the branch instead of the tag
 		case experimentalBranchName:
 			versions = append(versions, optionVersion{
 				Path:     experimentalBranchName,
@@ -103,6 +105,7 @@ func buildVersions(currentVersion string, branches []string, latestTagName, expe
 				State:    stateExperimental,
 				Selected: selected,
 			})
+
 		default:
 			simpleVersion, err := version.NewVersion(versionName)
 			if err != nil {
@@ -126,7 +129,11 @@ func buildVersions(currentVersion string, branches []string, latestTagName, expe
 			default:
 				v.Path = versionName
 				v.Text = versionName
+				if !isHeads(heads, simpleVersion) {
+					v.State = stateObsolete
+				}
 			}
+
 			versions = append(versions, v)
 		}
 	}
@@ -134,9 +141,43 @@ func buildVersions(currentVersion string, branches []string, latestTagName, expe
 	return versions, nil
 }
 
+func parseBranches(branches []string) ([]string, map[int]*version.Version) {
+	heads := map[int]*version.Version{}
+
+	var rawVersions []string
+	for _, branch := range branches {
+		versionName := strings.Replace(branch, baseRemote, "", 1)
+		rawVersions = append(rawVersions, versionName)
+
+		v, err := version.NewVersion(versionName)
+		if err != nil {
+			continue
+		}
+
+		if p, ok := heads[v.Segments()[0]]; ok {
+			if v.GreaterThan(p) {
+				heads[v.Segments()[0]] = v
+			}
+		} else {
+			heads[v.Segments()[0]] = v
+		}
+	}
+	return rawVersions, heads
+}
+
 func sameMinor(v1, v2 *version.Version) bool {
 	v1Parts := v1.Segments()
 	v2Parts := v2.Segments()
 
 	return v1Parts[0] == v2Parts[0] && v1Parts[1] == v2Parts[1]
+}
+
+func isHeads(heads map[int]*version.Version, v *version.Version) bool {
+	for _, head := range heads {
+		if v.Equal(head) {
+			return true
+		}
+	}
+
+	return false
 }
