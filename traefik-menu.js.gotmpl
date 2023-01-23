@@ -10,12 +10,94 @@ var versions = [
 
 {{- range $version := .Versions }}
 {{ if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
-function addBannerMaterial() {
-  // TODO
+function createBanner(parentElem, versions) {
+  if (!parentElem || window.location.host !== "doc.traefik.io") {
+    return;
+  }
+
+  const products = {
+    traefik: {
+      color: '#2aa2c1',
+      backgroundColor: '#2aa2c11a',
+      fullName: 'Traefik Proxy',
+    },
+    'traefik-enterprise': {
+      color: '#337fe6',
+      backgroundColor: '#337fe61a',
+      fullName: 'Traefik Enterprise',
+    },
+    'traefik-mesh': {
+      color: '#be46dd',
+      backgroundColor: '#be46dd1a',
+      fullName: 'Traefik Mesh',
+    },
+  }
+
+  const [productName] = window.location.pathname.split('/')
+  const currentProduct = products[productName] 
+  const currentVersion = versions.find(v => v.selected)
+  const preExistentBanner = document.getElementById('outdated-doc-banner');
+
+  if (!currentProduct || !currentVersion || !!preExistentBanner) return;
+
+  const cssCode = `
+    #outdated-doc-banner {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      margin: 24px 0 32.5px;
+      padding: 11px 16px;
+      border-radius: 8px;
+      background-color: ${currentProduct.backgroundColor};
+      gap: 16px;
+      flex-grow: 1;
+      font-family: Rubik;
+      font-size: 14px;
+      color: ${currentProduct.color};
+      box-sizing: border-box;
+    }
+    #outdated-doc-banner strong { font-weight: 500; }
+    #outdated-doc-banner a { color: ${currentProduct.color}; text-decoration: none; }
+    #outdated-doc-banner a:hover { text-decoration: underline; }
+    #outdated-doc-banner p { margin: 0; }
+  `
+
+  const banner = document.createElement('div');
+  banner.id = 'outdated-doc-banner';
+  banner.innerHTML = `
+    <strong>OLD VERSION</strong>
+    <p>
+      You're looking at documentation for ${currentProduct.fullName} ${currentVersion.text}.
+      <a href="/${productName}">Click here to see the latest version. →</a>
+    </p>
+  `;
+
+  // Append HTML
+  parentElem.prepend(banner);
+
+  // Append Styling
+  const [head] = document.getElementsByTagName("head");
+  if (!document.getElementById("outdated-doc-banner-style")) {
+    const styleElem = document.createElement("style");
+    styleElem.id = "outdated-doc-banner-style";
+
+    if (styleElem.styleSheet) {
+      styleElem.styleSheet.cssText = cssCode;
+    } else {
+      styleElem.appendChild(document.createTextNode(cssCode));
+    }
+
+    head.appendChild(styleElem);
+  }
+}
+function addBannerMaterial(versions) {
+  const elem = document.querySelector('div.md-container > main.md-main > .md-main__inner');
+  createBanner(elem, versions)
 }
 
 function addBannerUnited() {
-  // TODO
+  const elem = document.querySelector('body > div.container');
+  createBanner(elem, versions)
 }
 {{- end}}
 {{- end}}
@@ -131,9 +213,9 @@ const materialSelector = 'div.md-container main.md-main div.md-main__inner.md-gr
 let elt = document.querySelector(materialSelector);
 if (elt) {
     addMaterialMenu(elt, versions);
-    addBannerMaterial();
+    addBannerMaterial(versions);
 } else {
     const elt = document.querySelector(unitedSelector);
     addMenu(elt, versions);
-    addBannerUnited();
+    addBannerUnited(versions);
 }
