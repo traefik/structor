@@ -43,33 +43,43 @@ function createBanner(parentElem, versions) {
   const cssCode = `
     #outdated-doc-banner {
       display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      max-width: 1274px;
+      margin: 0 auto;
+    }
+    #outdated-doc-banner .content {
+      display: flex;
       align-items: center;
       height: 40px;
-      margin: 24px 0 32.5px;
+      margin: 24px;
       padding: 11px 16px;
       border-radius: 8px;
       background-color: ${currentProduct.backgroundColor};
       gap: 16px;
-      flex-grow: 1;
-      font-family: Rubik;
+      font-family: Rubik, sans-serif;
       font-size: 14px;
       color: ${currentProduct.color};
       box-sizing: border-box;
+      width: 100%;
     }
-    #outdated-doc-banner strong { font-weight: 500; }
-    #outdated-doc-banner a { color: ${currentProduct.color}; text-decoration: none; }
-    #outdated-doc-banner a:hover { text-decoration: underline; }
-    #outdated-doc-banner p { margin: 0; }
+    #outdated-doc-banner .content strong { font-weight: bold; }
+    #outdated-doc-banner .content a { color: ${currentProduct.color}; text-decoration: none; }
+    #outdated-doc-banner .content a:hover { text-decoration: underline; }
+    #outdated-doc-banner .content p { margin: 0; }
   `
 
   const banner = document.createElement('div');
   banner.id = 'outdated-doc-banner';
   banner.innerHTML = `
-    <strong>OLD VERSION</strong>
-    <p>
-      You're looking at documentation for ${currentProduct.fullName} ${currentVersion.text}.
-      <a href="/${productName}">Click here to see the latest version. →</a>
-    </p>
+    <div class="content">
+      <strong>OLD VERSION</strong>
+      <p>
+        You're looking at documentation for ${currentProduct.fullName} ${currentVersion.text}.
+        <a href="/${productName}">Click here to see the latest version. →</a>
+      </p>
+    </div>
   `;
 
   // Append HTML
@@ -91,7 +101,7 @@ function createBanner(parentElem, versions) {
   }
 }
 function addBannerMaterial(versions) {
-  const elem = document.querySelector('div.md-container');
+  const elem = document.querySelector('body > div.md-container');
   createBanner(elem, versions)
 }
 
