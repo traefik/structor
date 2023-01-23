@@ -33,7 +33,7 @@ function createBanner(parentElem, versions) {
     },
   }
 
-  const [productName] = window.location.pathname.split('/')
+  const [,productName] = window.location.pathname.split('/')
   const currentProduct = products[productName] 
   const currentVersion = versions.find(v => v.selected)
   const preExistentBanner = document.getElementById('outdated-doc-banner');
