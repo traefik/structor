@@ -36,40 +36,50 @@ function createBanner(parentElem, versions) {
   const [,productName] = window.location.pathname.split('/')
   const currentProduct = products[productName] 
   const currentVersion = versions.find(v => v.selected)
-  const preExistentBanner = document.getElementById('outdated-doc-banner');
+  const preExistentBanner = document.getElementById('obsolete-banner');
 
   if (!currentProduct || !currentVersion || !!preExistentBanner) return;
 
   const cssCode = `
-    #outdated-doc-banner {
+    #obsolete-banner {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      max-width: 1274px;
+      margin: 0 auto;
+    }
+    #obsolete-banner .obsolete-banner-content {
       display: flex;
       align-items: center;
       height: 40px;
-      margin: 24px 0 32.5px;
+      margin: 24px;
       padding: 11px 16px;
       border-radius: 8px;
       background-color: ${currentProduct.backgroundColor};
       gap: 16px;
-      flex-grow: 1;
-      font-family: Rubik;
+      font-family: Rubik, sans-serif;
       font-size: 14px;
       color: ${currentProduct.color};
       box-sizing: border-box;
+      width: 100%;
     }
-    #outdated-doc-banner strong { font-weight: 500; }
-    #outdated-doc-banner a { color: ${currentProduct.color}; text-decoration: none; }
-    #outdated-doc-banner a:hover { text-decoration: underline; }
-    #outdated-doc-banner p { margin: 0; }
+    #obsolete-banner .obsolete-banner-content strong { font-weight: bold; }
+    #obsolete-banner .obsolete-banner-content a { color: ${currentProduct.color}; text-decoration: none; }
+    #obsolete-banner .obsolete-banner-content a:hover { text-decoration: underline; }
+    #obsolete-banner .obsolete-banner-content p { margin: 0; }
   `
 
   const banner = document.createElement('div');
-  banner.id = 'outdated-doc-banner';
+  banner.id = 'obsolete-banner';
   banner.innerHTML = `
-    <strong>OLD VERSION</strong>
-    <p>
-      You're looking at documentation for ${currentProduct.fullName} ${currentVersion.text}.
-      <a href="/${productName}">Click here to see the latest version. →</a>
-    </p>
+    <div class="obsolete-banner-content">
+      <strong>OLD VERSION</strong>
+      <p>
+        You're looking at documentation for ${currentProduct.fullName} ${currentVersion.text}.
+        <a href="/${productName}">Click here to see the latest version. →</a>
+      </p>
+    </div>
   `;
 
   // Append HTML
@@ -77,9 +87,9 @@ function createBanner(parentElem, versions) {
 
   // Append Styling
   const [head] = document.getElementsByTagName("head");
-  if (!document.getElementById("outdated-doc-banner-style")) {
+  if (!document.getElementById("obsolete-banner-style")) {
     const styleElem = document.createElement("style");
-    styleElem.id = "outdated-doc-banner-style";
+    styleElem.id = "obsolete-banner-style";
 
     if (styleElem.styleSheet) {
       styleElem.styleSheet.cssText = cssCode;
@@ -91,7 +101,7 @@ function createBanner(parentElem, versions) {
   }
 }
 function addBannerMaterial(versions) {
-  const elem = document.querySelector('div.md-container');
+  const elem = document.querySelector('body > div.md-container');
   createBanner(elem, versions)
 }
 
