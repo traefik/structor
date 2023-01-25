@@ -52,7 +52,18 @@ func writeJsFile(manifestDocsDir string, menuContent Content, versionsInfo types
 }
 
 func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branches []string, menuTemplate string) error {
-	temp := template.New("menu-js").Funcs(sprig.TxtFuncMap())
+	defaultFuncMap := sprig.TxtFuncMap()
+	defaultFuncMap["IsObsolete"] = func(versions []optionVersion, current string) bool {
+		for _, v := range versions {
+			fmt.Println(current, v.Name, v.State)
+			if v.Name == current && v.State == stateObsolete {
+				return true
+			}
+		}
+		return false
+	}
+
+	temp := template.New("menu-js").Funcs(defaultFuncMap)
 
 	_, err := temp.Parse(menuTemplate)
 	if err != nil {
