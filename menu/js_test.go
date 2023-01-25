@@ -72,6 +72,40 @@ var foo = [
 ];
 `,
 		},
+		{
+			desc:     "traefik-menu.js.gotmpl - not obsolete",
+			branches: []string{"origin/v1.4", "origin/master", "v1.4.6", "origin/v1.5", "origin/v1.3"},
+			versionsInfo: types.VersionsInformation{
+				Current:      "v1.5",
+				Latest:       "v1.4.6",
+				Experimental: "master",
+			},
+			jsTemplate: func() string {
+				data, _ := os.ReadFile("../traefik-menu.js.gotmpl")
+				return string(data)
+			}(),
+			expected: func() string {
+				data, _ := os.ReadFile("./fixtures/traefik-menu.js")
+				return string(data)
+			}(),
+		},
+		{
+			desc:     "traefik-menu.js.gotmpl - obsolete",
+			branches: []string{"origin/v1.4", "origin/master", "v1.4.6", "origin/v1.5", "origin/v1.3"},
+			versionsInfo: types.VersionsInformation{
+				Current:      "v1.3",
+				Latest:       "v1.4.6",
+				Experimental: "master",
+			},
+			jsTemplate: func() string {
+				data, _ := os.ReadFile("../traefik-menu.js.gotmpl")
+				return string(data)
+			}(),
+			expected: func() string {
+				data, _ := os.ReadFile("./fixtures/traefik-menu-obsolete.js")
+				return string(data)
+			}(),
+		},
 	}
 
 	for _, test := range testCases {

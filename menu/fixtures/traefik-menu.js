@@ -1,117 +1,13 @@
 var versions = [
-  {{- range $version := .Versions }}
-  {{- $text := $version.Text }}
-  {{- if eq $version.State "PRE_FINAL_RELEASE" }}
-    {{- $text = printf "%s (RC)" .Name }}
-  {{- end}}
-  {path: "{{ $version.Path }}", text: "{{ $text }}", selected: {{ eq $version.Name $.Current }} },
-  {{- end}}
+  {path: "", text: "v1.4 Latest", selected: false },
+  {path: "master", text: "Experimental", selected: false },
+  {path: "v1.5", text: "v1.5 (RC)", selected: true },
+  {path: "v1.3", text: "v1.3", selected: false },
 ];
 
-{{- range $version := .Versions }}
-{{ if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
-function createBanner(parentElem, versions) {
-  if (!parentElem || window.location.host !== "doc.traefik.io") {
-    return;
-  }
 
-  const products = {
-    traefik: {
-      color: '#2aa2c1',
-      backgroundColor: '#2aa2c11a',
-      fullName: 'Traefik Proxy',
-    },
-    'traefik-enterprise': {
-      color: '#337fe6',
-      backgroundColor: '#337fe61a',
-      fullName: 'Traefik Enterprise',
-    },
-    'traefik-mesh': {
-      color: '#be46dd',
-      backgroundColor: '#be46dd1a',
-      fullName: 'Traefik Mesh',
-    },
-  }
 
-  const [,productName] = window.location.pathname.split('/');
-  const currentProduct = products[productName];
-  const currentVersion = versions.find(v => v.selected);
-  const preExistentBanner = document.getElementById('outdated-doc-banner');
 
-  if (!currentProduct || !currentVersion || !!preExistentBanner) return;
-
-  const cssCode = `
-    #obsolete-banner {
-      display: flex;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
-      max-width: 1274px;
-      margin: 0 auto;
-    }
-    #obsolete-banner .obsolete-banner-content {
-      display: flex;
-      align-items: center;
-      height: 40px;
-      margin: 24px;
-      padding: 11px 16px;
-      border-radius: 8px;
-      background-color: ${currentProduct.backgroundColor};
-      gap: 16px;
-      font-family: Rubik, sans-serif;
-      font-size: 14px;
-      color: ${currentProduct.color};
-      box-sizing: border-box;
-      width: 100%;
-    }
-    #obsolete-banner .obsolete-banner-content strong { font-weight: bold; }
-    #obsolete-banner .obsolete-banner-content a { color: ${currentProduct.color}; text-decoration: none; }
-    #obsolete-banner .obsolete-banner-content a:hover { text-decoration: underline; }
-    #obsolete-banner .obsolete-banner-content p { margin: 0; }
-  `
-
-  const banner = document.createElement('div');
-  banner.id = 'obsolete-banner';
-  banner.innerHTML = `
-    <div class="obsolete-banner-content">
-      <strong>OLD VERSION</strong>
-      <p>
-        You're looking at documentation for ${currentProduct.fullName} ${currentVersion.text}.
-        <a href="/${productName}">Click here to see the latest version. →</a>
-      </p>
-    </div>
-  `;
-
-  // Append HTML
-  parentElem.prepend(banner);
-
-  // Append Styling
-  const [head] = document.getElementsByTagName("head");
-  if (!document.getElementById("obsolete-banner-style")) {
-    const styleElem = document.createElement("style");
-    styleElem.id = "obsolete-banner-style";
-
-    if (styleElem.styleSheet) {
-      styleElem.styleSheet.cssText = cssCode;
-    } else {
-      styleElem.appendChild(document.createTextNode(cssCode));
-    }
-
-    head.appendChild(styleElem);
-  }
-}
-
-function addBannerMaterial(versions) {
-  const elem = document.querySelector('body > div.md-container');
-  createBanner(elem, versions)
-}
-
-function addBannerUnited() {
-  const elem = document.querySelector('body > div.container');
-  createBanner(elem, versions)
-}
-{{- end}}
-{{- end}}
 
 // Material theme
 
@@ -224,19 +120,7 @@ const materialSelector = 'div.md-container main.md-main div.md-main__inner.md-gr
 let elt = document.querySelector(materialSelector);
 if (elt) {
   addMaterialMenu(elt, versions);
-
-{{- range $version := .Versions }}
-{{- if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
-  addBannerMaterial(versions);
-{{- end}}
-{{- end}}
 } else {
   const elt = document.querySelector(unitedSelector);
   addMenu(elt, versions);
-
-{{- range $version := .Versions }}
-{{- if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
-  addBannerUnited(versions);
-{{- end}}
-{{- end}}
 }

@@ -1,15 +1,13 @@
 var versions = [
-  {{- range $version := .Versions }}
-  {{- $text := $version.Text }}
-  {{- if eq $version.State "PRE_FINAL_RELEASE" }}
-    {{- $text = printf "%s (RC)" .Name }}
-  {{- end}}
-  {path: "{{ $version.Path }}", text: "{{ $text }}", selected: {{ eq $version.Name $.Current }} },
-  {{- end}}
+  {path: "", text: "v1.4 Latest", selected: false },
+  {path: "master", text: "Experimental", selected: false },
+  {path: "v1.5", text: "v1.5 (RC)", selected: false },
+  {path: "v1.3", text: "v1.3", selected: true },
 ];
 
-{{- range $version := .Versions }}
-{{ if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
+
+
+
 function createBanner(parentElem, versions) {
   if (!parentElem || window.location.host !== "doc.traefik.io") {
     return;
@@ -110,8 +108,6 @@ function addBannerUnited() {
   const elem = document.querySelector('body > div.container');
   createBanner(elem, versions)
 }
-{{- end}}
-{{- end}}
 
 // Material theme
 
@@ -224,19 +220,9 @@ const materialSelector = 'div.md-container main.md-main div.md-main__inner.md-gr
 let elt = document.querySelector(materialSelector);
 if (elt) {
   addMaterialMenu(elt, versions);
-
-{{- range $version := .Versions }}
-{{- if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
   addBannerMaterial(versions);
-{{- end}}
-{{- end}}
 } else {
   const elt = document.querySelector(unitedSelector);
   addMenu(elt, versions);
-
-{{- range $version := .Versions }}
-{{- if and (eq $version.Name $.Current) (eq $version.State "OBSOLETE") }}
   addBannerUnited(versions);
-{{- end}}
-{{- end}}
 }
