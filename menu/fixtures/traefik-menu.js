@@ -13,7 +13,7 @@ var versions = [
 
 function addMaterialMenu(elt, versions) {
   const current = versions.find(function (value) {
-    return value.selected
+    return value.selected;
   })
 
   const rootLi = document.createElement('li');
@@ -29,28 +29,46 @@ function addMaterialMenu(elt, versions) {
 
   rootLi.appendChild(input);
 
-  const lbl01 = document.createElement('label')
+  const lbl01 = document.createElement('label');
   lbl01.classList.add('md-nav__link');
   lbl01.setAttribute('for', 'nav-10000000');
-  lbl01.textContent = current.text + " ";
+
+  const spanTitle01 = document.createElement('span');
+  spanTitle01.classList.add('md-nav__item-title');
+  spanTitle01.textContent = current.text+ " ";
+
+  lbl01.appendChild(spanTitle01);
+
+  const spanIcon01 = document.createElement('span');
+  spanIcon01.classList.add('md-nav__icon');
+  spanIcon01.classList.add('md-icon');
+
+  lbl01.appendChild(spanIcon01);
 
   rootLi.appendChild(lbl01);
 
   const nav = document.createElement('nav')
   nav.classList.add('md-nav');
   nav.setAttribute('data-md-component','collapsible');
+  nav.setAttribute('aria-label', current.text);
   nav.setAttribute('data-md-level','1');
 
   rootLi.appendChild(nav);
 
-  const lbl02 = document.createElement('label')
+  const lbl02 = document.createElement('label');
   lbl02.classList.add('md-nav__title');
   lbl02.setAttribute('for', 'nav-10000000');
   lbl02.textContent = current.text + " ";
 
+  const spanIcon02 = document.createElement('span');
+  spanIcon02.classList.add('md-nav__icon');
+  spanIcon02.classList.add('md-icon');
+
+  lbl02.appendChild(spanIcon02);
+
   nav.appendChild(lbl02);
 
-  const ul = document.createElement('ul')
+  const ul = document.createElement('ul');
   ul.classList.add('md-nav__list');
   ul.setAttribute('data-md-scrollfix','');
 
@@ -69,10 +87,10 @@ function addMaterialMenu(elt, versions) {
     }
     a.href = window.location.protocol + "//" + window.location.host + "/";
     if (window.location.host === "doc.traefik.io") {
-      a.href = a.href + window.location.pathname.split('/')[1] + "/"
+      a.href = a.href + window.location.pathname.split('/')[1] + "/";
     }
     if (versions[i].path) {
-      a.href = a.href + versions[i].path + "/"
+      a.href = a.href + versions[i].path + "/";
     }
     a.title = versions[i].text;
     a.text = versions[i].text;
