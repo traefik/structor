@@ -19,6 +19,7 @@ func GetLatestReleaseTagName(owner, repositoryName string) (string, error) {
 	baseURL := fmt.Sprintf("https://github.com/%s/%s/releases", owner, repositoryName)
 
 	resp, err := client.Get(baseURL + "/latest")
+	defer func() { _ = resp.Body.Close() }()
 	if err != nil {
 		logResponseBody(resp)
 		return "", fmt.Errorf("failed to get latest release tag name: %w", err)
@@ -43,8 +44,6 @@ func logResponseBody(resp *http.Response) {
 		return
 	}
 
-	defer safeClose(resp.Body.Close)
-
 	body, errBody := io.ReadAll(resp.Body)
 	if errBody != nil {
 		log.Println(errBody)
@@ -52,10 +51,4 @@ func logResponseBody(resp *http.Response) {
 	}
 
 	log.Println("Body:", string(body))
-}
-
-func safeClose(fn func() error) {
-	if err := fn(); err != nil {
-		log.Println(err)
-	}
 }
