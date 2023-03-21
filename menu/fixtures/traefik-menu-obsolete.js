@@ -1,8 +1,8 @@
 var versions = [
-  {path: "", text: "v1.4 Latest", selected: false },
   {path: "master", text: "Experimental", selected: false },
-  {path: "v1.5", text: "v1.5 (RC)", selected: false },
-  {path: "v1.3", text: "v1.3", selected: true },
+  {path: "v1.10", text: "v1.10 (RC)", selected: false },
+  {path: "", text: "v1.9 Latest", selected: false },
+  {path: "v1.8", text: "v1.8", selected: true },
 ];
 
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -55,7 +56,6 @@ func buildJSFile(filePath string, versionsInfo types.VersionsInformation, branch
 	defaultFuncMap := sprig.TxtFuncMap()
 	defaultFuncMap["IsObsolete"] = func(versions []optionVersion, current string) bool {
 		for _, v := range versions {
-			fmt.Println(current, v.Name, v.State)
 			if v.Name == current && v.State == stateObsolete {
 				return true
 			}
@@ -173,6 +173,20 @@ func parseBranches(branches []string) ([]string, map[int]*version.Version) {
 			heads[v.Segments()[0]] = v
 		}
 	}
+
+	sort.Slice(rawVersions, func(i, j int) bool {
+		vi, err := version.NewVersion(rawVersions[i])
+		if err != nil {
+			return true
+		}
+		vj, err := version.NewVersion(rawVersions[j])
+		if err != nil {
+			return false
+		}
+
+		return vj.LessThanOrEqual(vi)
+	})
+
 	return rawVersions, heads
 }
 
