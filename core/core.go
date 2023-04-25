@@ -295,7 +295,7 @@ func copyVersionSiteToOutputSite(versionsInfo types.VersionsInformation, siteDir
 	}
 
 	outputDir := filepath.Join(siteDir, versionsInfo.Current)
-	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current) {
+	if strings.HasPrefix(versionsInfo.Latest, versionsInfo.Current+".") {
 		// Create a permalink for the latest version
 		err := file.Copy(filepath.Join(currentSiteDir, "site"), outputDir)
 		if err != nil {
